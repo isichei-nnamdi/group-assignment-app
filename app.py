@@ -3,6 +3,7 @@ import pandas as pd
 import gspread
 from datetime import datetime
 from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2.service_account import Credentials
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
