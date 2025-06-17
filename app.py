@@ -269,7 +269,7 @@ if st.session_state.user_role == "student":
             #     (df['Programme'] == department) &
             #     (~df['Matric Number'].astype(str).str.upper().isin(already_grouped) | (df['Matric Number'].astype(str).str.upper() == current_matric))
             # ].copy()
-             filtered = df[
+            filtered = df[
                 (~df['Matric Number'].astype(str).str.upper().isin(already_grouped) | (df['Matric Number'].astype(str).str.upper() == current_matric))
             ].copy()
         
