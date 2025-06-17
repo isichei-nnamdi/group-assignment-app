@@ -176,14 +176,50 @@ if st.session_state.user_role == "student":
 
 
         # === Step 3: Prevent duplicate group creation by same student for same course ===
+        # if st.session_state.user_role == "student":
+        #     if "created_by" in st.session_state.groups_df.columns and "course" in st.session_state.groups_df.columns:
+        #         existing = st.session_state.groups_df[
+        #             (st.session_state.groups_df["created_by"].str.lower() == st.session_state.user_email.lower()) &
+        #             (st.session_state.groups_df["course"].str.lower() == selected_course.lower())
+        #         ]
+        #         if not existing.empty:
+        #             block_form = True # allow rendering but block action later
+        # === Step 3: Prevent duplicate group creation by same student for same course ===
         if st.session_state.user_role == "student":
+            block_form = False  # Default state
+            user_email = st.session_state.user_email.lower()
+        
+            # Prevent a user from creating more than one group per course
             if "created_by" in st.session_state.groups_df.columns and "course" in st.session_state.groups_df.columns:
-                existing = st.session_state.groups_df[
-                    (st.session_state.groups_df["created_by"].str.lower() == st.session_state.user_email.lower()) &
+                existing_group = st.session_state.groups_df[
+                    (st.session_state.groups_df["created_by"].str.lower() == user_email) &
                     (st.session_state.groups_df["course"].str.lower() == selected_course.lower())
                 ]
-                if not existing.empty:
-                    block_form = True # allow rendering but block action later
+                if not existing_group.empty:
+                    st.warning("You have already created a group for this course.")
+                    block_form = True
+        
+            # Prevent any student from being added to more than one group per course
+            if "members" in st.session_state.groups_df.columns and "course" in st.session_state.groups_df.columns:
+                # Filter only the groups for the selected course
+                course_groups = st.session_state.groups_df[
+                    st.session_state.groups_df["course"].str.lower() == selected_course.lower()
+                ]
+        
+                # Flatten the list of all members for this course
+                existing_members = set()
+                for row in course_groups["members"].dropna():
+                    for matric in [m.strip().upper() for m in row.split(",")]:
+                        existing_members.add(matric)
+        
+                # Check if any of the current inputs (matric numbers) are already in a group
+                submitted_members = [m.strip().upper() for m in group_matric_list]  # your list from the form input
+        
+                duplicate_members = [m for m in submitted_members if m in existing_members]
+                if duplicate_members:
+                    st.error(f"The following matric number(s) are already in another group for this course: {', '.join(duplicate_members)}")
+                    block_form = True
+
 
 
         # === Step 4: Remove already grouped students for the same course ===
