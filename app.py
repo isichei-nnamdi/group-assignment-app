@@ -15,15 +15,36 @@ import json
 # try:
 # ========== Google Sheets Auth ==========
 # Define scopes
+# scope = [
+#     "https://spreadsheets.google.com/feeds",
+#     "https://www.googleapis.com/auth/drive"
+# ]
+
+# # Load service account credentials from secrets
+# service_account_info = st.secrets["google_service_account"]
+
+# st.write(st.secrets["google_service_account"].keys())
+
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/drive"
 ]
 
-# Load service account credentials from secrets
-service_account_info = st.secrets["google_service_account"]
+# Load credentials from secrets
+creds = Credentials.from_service_account_info(
+    st.secrets["google_service_account"],
+    scopes=scope
+)
 
-st.write(st.secrets["google_service_account"].keys())
+client = gspread.authorize(creds)
+
+# Now safely access sheet IDs
+sheet_id = st.secrets["google_service_account"]["student_sheet_id"]
+sheet = client.open_by_key(sheet_id).sheet1
+
+st.success("Google Sheet successfully connected.")
+st.write(sheet.row_values(1))
+
 #     creds = Credentials.from_service_account_info(service_account_info, scopes=scope)
     
 #     # Authorize gspread client
