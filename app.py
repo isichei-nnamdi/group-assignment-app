@@ -18,7 +18,7 @@ try:
     secrets_dict = dict(st.secrets["google_service_account"])
 
     with open("temp_credentials.json", "w") as f:
-    json.dump(secrets_dict, f)
+        json.dump(secrets_dict, f)
 
     # Then use it like this:
     creds = Credentials.from_service_account_file("temp_credentials.json")
