@@ -14,10 +14,19 @@ import json
 try:
     # ========== Google Sheets Auth ==========
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    service_account_info = st.secrets["google_service_account"]
-    creds = ServiceAccountCredentials.from_json_keyfile_dict(
-        json.loads(json.dumps(service_account_info)), scope
-    )
+    # Convert AttrDict to a regular dict
+    secrets_dict = dict(st.secrets["google_service_account"])
+
+    with open("temp_credentials.json", "w") as f:
+    json.dump(secrets_dict, f)
+
+    # Then use it like this:
+    creds = Credentials.from_service_account_file("temp_credentials.json")
+    
+    # service_account_info = st.secrets["google_service_account"]
+    # creds = ServiceAccountCredentials.from_json_keyfile_dict(
+    #     json.loads(json.dumps(service_account_info)), scope
+    # )
     client = gspread.authorize(creds)
     # creds = ServiceAccountCredentials.from_json_keyfile_name("my-miva-project-e7d820ea62bf.json", scope)
     # client = gspread.authorize(creds)
