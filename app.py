@@ -29,10 +29,6 @@ try:
     
     # Now safely access sheet IDs
     sheet_id = st.secrets["google_service_account"]["student_sheet_id"]
-    # sheet = client.open_by_key(sheet_id).sheet1
-    
-    st.success("Google Sheet successfully connected.")
-    # st.write(sheet.row_values(1))
     
     # Access sheet IDs from secrets
     student_sheet_id = st.secrets["google_service_account"]["student_sheet_id"]
@@ -245,7 +241,7 @@ if st.session_state.user_role == "student":
                 st.error(
                     f"""🚫 You must select your correct **Faculty** and **Programme** to proceed.
                 
-        Your name (**{current_display}**) is not listed among the students in the selected department.
+        Your name {current_display} is not listed among the students in the selected department.
 
         Please go back and double-check your selection."""
                 )
@@ -311,10 +307,13 @@ if st.session_state.user_role == "student":
         Please collaborate with your teammates.
 
         Best regards,  
-        Group Formation App
+        
+        Group Formation Support,
+        School of Computing,
+        Miva Open University
         """
                         msg = MIMEMultipart()
-                        msg['From'] = "Group App"
+                        msg['From'] = "Group Formation Support"
                         msg['To'] = email
                         msg['Subject'] = subject
                         msg.attach(MIMEText(body, 'plain'))
