@@ -14,23 +14,22 @@ import json
 
 try:
     # ========== Google Sheets Auth ==========
-    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    # Convert AttrDict to a regular dict
-    secrets_dict = dict(st.secrets["google_service_account"])
-
-    with open("temp_credentials.json", "w") as f:
-        json.dump(secrets_dict, f)
-
-    # Then use it like this:
-    creds = Credentials.from_service_account_file("temp_credentials.json")
+    # Define scopes
+    scope = [
+        "https://spreadsheets.google.com/feeds",
+        "https://www.googleapis.com/auth/drive"
+    ]
     
-    # service_account_info = st.secrets["google_service_account"]
-    # creds = ServiceAccountCredentials.from_json_keyfile_dict(
-    #     json.loads(json.dumps(service_account_info)), scope
-    # )
+    # Load service account credentials from secrets
+    service_account_info = st.secrets["google_service_account"]
+    creds = Credentials.from_service_account_info(service_account_info, scopes=scope)
+    
+    # Authorize gspread client
     client = gspread.authorize(creds)
-    # creds = ServiceAccountCredentials.from_json_keyfile_name("my-miva-project-e7d820ea62bf.json", scope)
-    # client = gspread.authorize(creds)
+    
+    # Access sheet IDs from secrets
+    student_sheet_id = st.secrets["google_service_account"]["student_sheet_id"]
+    group_log_sheet_id = st.secrets["google_service_account"]["group_log_sheet_id"]
 
     # ========== Load Data & Cache ==========
     def load_students_df():
