@@ -33,8 +33,8 @@ try:
     # Access sheet IDs from secrets
     student_sheet_id = st.secrets["google_service_account"]["student_sheet_id"]
     group_log_sheet_id = st.secrets["google_service_account"]["group_log_sheet_id"]
-
-
+    developer_email = st.secrets["google_service_account"]["developer_email"]
+    developer_password = st.secrets["google_service_account"]["developer_password"]
 
     # ========== Load Data & Cache ==========
     def load_students_df():
@@ -389,11 +389,11 @@ if st.session_state.user_role == "student":
                             msg['To'] = email
                             msg['Subject'] = subject
                             msg.attach(MIMEText(body, 'plain'))
-    
+
                             try:
                                 server = smtplib.SMTP('smtp.gmail.com', 587)
                                 server.starttls()
-                                server.login("isichei.nnamdi@gmail.com", "yjmkwwrokhxlbske")
+                                server.login(developer_email, developer_password)
                                 server.send_message(msg)
                                 server.quit()
                             except Exception as e:
