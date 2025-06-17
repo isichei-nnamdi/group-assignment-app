@@ -280,10 +280,10 @@ if st.session_state.user_role == "student":
             filtered["MIVA Email"] = filtered["MIVA Email"].str.strip()
             filtered["Display"] = filtered["First Name"] + " " + filtered["Surname"] + " (" + filtered["Matric Number"] + ")"
 
-        # === Step 5: Add mappings for multiselect ===
-        display_to_matric = dict(zip(filtered["Display"], filtered["Matric Number"]))
-        display_to_name = dict(zip(filtered["Display"], filtered["First Name"] + " " + filtered["Surname"]))
-        display_to_email = dict(zip(filtered["Display"], filtered["MIVA Email"]))
+            # === Step 5: Add mappings for multiselect ===
+            display_to_matric = dict(zip(filtered["Display"], filtered["Matric Number"]))
+            display_to_name = dict(zip(filtered["Display"], filtered["First Name"] + " " + filtered["Surname"]))
+            display_to_email = dict(zip(filtered["Display"], filtered["MIVA Email"]))
 
         # === Step 6: Ensure current student is selected and shown ===
         if st.session_state.user_role == "student":
