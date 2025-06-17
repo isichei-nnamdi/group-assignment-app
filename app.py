@@ -42,21 +42,21 @@ try:
 
     # ========== Load Data & Cache ==========
     def load_students_df():
-        ws = client.open_by_key(st.secrets["student_sheet_id"]).worksheet("UNDERGRADUATE")
+        ws = client.open_by_key(student_sheet_id).worksheet("UNDERGRADUATE")
         df = pd.DataFrame(ws.get_all_records())
         df["Email"] = df["Email"].str.strip().str.lower()
         df["Student ID"] = df["Student ID"].astype(str).str.strip()
         return df
 
     def load_login_df():
-        ws = client.open_by_key(st.secrets["group_log_sheet_id"]).worksheet("Login_details")
+        ws = client.open_by_key(group_log_sheet_id).worksheet("Login_details")
         df = pd.DataFrame(ws.get_all_records())
         df["Email"] = df["Email"].str.strip().str.lower()
         df["Password"] = df["Password"].astype(str).str.strip()
         return df
 
     def load_groups_df():
-        sheet = client.open_by_key(st.secrets["group_log_sheet_id"])
+        sheet = client.open_by_key(group_log_sheet_id)
         try:
             ws = sheet.worksheet("groups")
         except gspread.exceptions.WorksheetNotFound:
@@ -74,7 +74,7 @@ try:
         st.session_state.groups_ws, st.session_state.groups_df = load_groups_df()
 
     def load_course_list():
-        course_ws = client.open_by_key(st.secrets["group_log_sheet_id"]).worksheet("course_list")
+        course_ws = client.open_by_key(group_log_sheet_id).worksheet("course_list")
         return sorted(pd.Series(course_ws.col_values(1)).dropna().unique())
 
     if "course_list" not in st.session_state:
