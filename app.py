@@ -12,18 +12,18 @@ import socket
 import json
 
 
-try:
-    # ========== Google Sheets Auth ==========
-    # Define scopes
-    scope = [
-        "https://spreadsheets.google.com/feeds",
-        "https://www.googleapis.com/auth/drive"
-    ]
-    
-    # Load service account credentials from secrets
-    service_account_info = st.secrets["google_service_account"]
+# try:
+# ========== Google Sheets Auth ==========
+# Define scopes
+scope = [
+    "https://spreadsheets.google.com/feeds",
+    "https://www.googleapis.com/auth/drive"
+]
 
-    st.write(st.secrets["google_service_account"].keys())
+# Load service account credentials from secrets
+service_account_info = st.secrets["google_service_account"]
+
+st.write(st.secrets["google_service_account"].keys())
 #     creds = Credentials.from_service_account_info(service_account_info, scopes=scope)
     
 #     # Authorize gspread client
