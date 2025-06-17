@@ -8,13 +8,19 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from google.auth.exceptions import TransportError
 import socket
+import json
 
 
 try:
     # ========== Google Sheets Auth ==========
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    creds = ServiceAccountCredentials.from_json_keyfile_name("my-miva-project-e7d820ea62bf.json", scope)
+    service_account_info = st.secrets["google_service_account"]
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(
+        json.loads(json.dumps(service_account_info)), scope
+    )
     client = gspread.authorize(creds)
+    # creds = ServiceAccountCredentials.from_json_keyfile_name("my-miva-project-e7d820ea62bf.json", scope)
+    # client = gspread.authorize(creds)
 
     # ========== Load Data & Cache ==========
     def load_students_df():
