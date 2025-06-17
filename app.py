@@ -176,49 +176,49 @@ if st.session_state.user_role == "student":
 
 
         # === Step 3: Prevent duplicate group creation by same student for same course ===
-        # if st.session_state.user_role == "student":
-        #     if "created_by" in st.session_state.groups_df.columns and "course" in st.session_state.groups_df.columns:
-        #         existing = st.session_state.groups_df[
-        #             (st.session_state.groups_df["created_by"].str.lower() == st.session_state.user_email.lower()) &
-        #             (st.session_state.groups_df["course"].str.lower() == selected_course.lower())
-        #         ]
-        #         if not existing.empty:
-        #             block_form = True # allow rendering but block action later
-        # === Step 3: Prevent duplicate group creation by same student for same course ===
         if st.session_state.user_role == "student":
-            block_form = False  # Default state
-            user_email = st.session_state.user_email.lower()
-        
-            # Prevent a user from creating more than one group per course
             if "created_by" in st.session_state.groups_df.columns and "course" in st.session_state.groups_df.columns:
-                existing_group = st.session_state.groups_df[
-                    (st.session_state.groups_df["created_by"].str.lower() == user_email) &
+                existing = st.session_state.groups_df[
+                    (st.session_state.groups_df["created_by"].str.lower() == st.session_state.user_email.lower()) &
                     (st.session_state.groups_df["course"].str.lower() == selected_course.lower())
                 ]
-                if not existing_group.empty:
-                    st.warning("You have already created a group for this course.")
-                    block_form = True
+                if not existing.empty:
+                    block_form = True # allow rendering but block action later
+        # === Step 3: Prevent duplicate group creation by same student for same course ===
+        # if st.session_state.user_role == "student":
+        #     block_form = False  # Default state
+        #     user_email = st.session_state.user_email.lower()
         
-            # Prevent any student from being added to more than one group per course
-            if "members" in st.session_state.groups_df.columns and "course" in st.session_state.groups_df.columns:
-                # Filter only the groups for the selected course
-                course_groups = st.session_state.groups_df[
-                    st.session_state.groups_df["course"].str.lower() == selected_course.lower()
-                ]
+        #     # Prevent a user from creating more than one group per course
+        #     if "created_by" in st.session_state.groups_df.columns and "course" in st.session_state.groups_df.columns:
+        #         existing_group = st.session_state.groups_df[
+        #             (st.session_state.groups_df["created_by"].str.lower() == user_email) &
+        #             (st.session_state.groups_df["course"].str.lower() == selected_course.lower())
+        #         ]
+        #         if not existing_group.empty:
+        #             st.warning("You have already created a group for this course.")
+        #             block_form = True
         
-                # Flatten the list of all members for this course
-                existing_members = set()
-                for row in course_groups["members"].dropna():
-                    for matric in [m.strip().upper() for m in row.split(",")]:
-                        existing_members.add(matric)
+        #     # Prevent any student from being added to more than one group per course
+        #     if "members" in st.session_state.groups_df.columns and "course" in st.session_state.groups_df.columns:
+        #         # Filter only the groups for the selected course
+        #         course_groups = st.session_state.groups_df[
+        #             st.session_state.groups_df["course"].str.lower() == selected_course.lower()
+        #         ]
         
-                # Check if any of the current inputs (matric numbers) are already in a group
-                submitted_members = [m.strip().upper() for m in group_matric_list]  # your list from the form input
+        #         # Flatten the list of all members for this course
+        #         existing_members = set()
+        #         for row in course_groups["members"].dropna():
+        #             for matric in [m.strip().upper() for m in row.split(",")]:
+        #                 existing_members.add(matric)
         
-                duplicate_members = [m for m in submitted_members if m in existing_members]
-                if duplicate_members:
-                    st.error(f"The following matric number(s) are already in another group for this course: {', '.join(duplicate_members)}")
-                    block_form = True
+        #         # Check if any of the current inputs (matric numbers) are already in a group
+        #         submitted_members = [m.strip().upper() for m in group_matric_list]  # your list from the form input
+        
+        #         duplicate_members = [m for m in submitted_members if m in existing_members]
+        #         if duplicate_members:
+        #             st.error(f"The following matric number(s) are already in another group for this course: {', '.join(duplicate_members)}")
+        #             block_form = True
 
 
 
@@ -241,19 +241,44 @@ if st.session_state.user_role == "student":
 
 
         # Filter: All students in selected dept, excluding already grouped (except current student)
-        filtered = df[
-            (df['Faculty'] == faculty) &
-            (df['Programme'] == department) &
-            (~df['Matric Number'].astype(str).str.upper().isin(already_grouped) | (df['Matric Number'].astype(str).str.upper() == current_matric))
-        ].copy()
+        # filtered = df[
+        #     (df['Faculty'] == faculty) &
+        #     (df['Programme'] == department) &
+        #     (~df['Matric Number'].astype(str).str.upper().isin(already_grouped) | (df['Matric Number'].astype(str).str.upper() == current_matric))
+        # ].copy()
 
-        # === Step 4: Clean names and emails ===
-        filtered["First Name"] = filtered["First Name"].str.strip().str.title()
-        filtered["Surname"] = filtered["Surname"].str.strip().str.title()
-        filtered["Matric Number"] = filtered["Matric Number"].astype(str).str.strip().str.upper()
-        filtered["MIVA Email"] = filtered["MIVA Email"].str.strip()
+        # # === Step 4: Clean names and emails ===
+        # filtered["First Name"] = filtered["First Name"].str.strip().str.title()
+        # filtered["Surname"] = filtered["Surname"].str.strip().str.title()
+        # filtered["Matric Number"] = filtered["Matric Number"].astype(str).str.strip().str.upper()
+        # filtered["MIVA Email"] = filtered["MIVA Email"].str.strip()
 
-        filtered["Display"] = filtered["First Name"] + " " + filtered["Surname"] + " (" + filtered["Matric Number"] + ")"
+        # filtered["Display"] = filtered["First Name"] + " " + filtered["Surname"] + " (" + filtered["Matric Number"] + ")"
+
+        # === Check if current student is already grouped ===
+        if current_matric in already_grouped:
+            st.warning("You have already been added to a group for this course and cannot create another group.")
+            st.markdown("---")
+            if st.button("Logout"):
+                st.session_state.clear()
+                st.experimental_rerun()
+        else:
+            # === Filter: All students in selected dept, excluding already grouped (except current student) ===
+            # filtered = df[
+            #     (df['Faculty'] == faculty) &
+            #     (df['Programme'] == department) &
+            #     (~df['Matric Number'].astype(str).str.upper().isin(already_grouped) | (df['Matric Number'].astype(str).str.upper() == current_matric))
+            # ].copy()
+             filtered = df[
+                (~df['Matric Number'].astype(str).str.upper().isin(already_grouped) | (df['Matric Number'].astype(str).str.upper() == current_matric))
+            ].copy()
+        
+            # === Step 4: Clean names and emails ===
+            filtered["First Name"] = filtered["First Name"].str.strip().str.title()
+            filtered["Surname"] = filtered["Surname"].str.strip().str.title()
+            filtered["Matric Number"] = filtered["Matric Number"].astype(str).str.strip().str.upper()
+            filtered["MIVA Email"] = filtered["MIVA Email"].str.strip()
+            filtered["Display"] = filtered["First Name"] + " " + filtered["Surname"] + " (" + filtered["Matric Number"] + ")"
 
         # === Step 5: Add mappings for multiselect ===
         display_to_matric = dict(zip(filtered["Display"], filtered["Matric Number"]))
@@ -268,11 +293,22 @@ if st.session_state.user_role == "student":
             student_options = filtered["Display"].tolist()
 
             try:
+                # selected_display = st.multiselect(
+                #     "Choose 3–15 students",
+                #     student_options,
+                #     default=[current_display]
+                # )
                 selected_display = st.multiselect(
-                    "Choose 3–15 students",
+                    "Choose 3–15 students (you must be part of your own group)",
                     student_options,
                     default=[current_display]
                 )
+                
+                # Ensure current_display is always in the list
+                if current_display not in selected_display:
+                    st.warning("You cannot remove yourself from the group. We've added you back.")
+                    selected_display = [current_display] + [d for d in selected_display if d != current_display]
+
             except st.errors.StreamlitAPIException:
                 st.error(
                     f"""🚫 You must select your correct **Faculty** and **Programme** to proceed.
