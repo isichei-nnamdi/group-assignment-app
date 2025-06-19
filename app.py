@@ -286,29 +286,58 @@ if st.session_state.user_role == "student":
             display_to_name = dict(zip(filtered["Display"], filtered["fullname"]))
             display_to_email = dict(zip(filtered["Display"], filtered["email"]))
 
+            # # === Step 6: Ensure current student is selected and shown ===
+            # if st.session_state.user_role == "student":
+            #     current_student = st.session_state.current_student
+            #     current_email = current_student['email'].strip().lower()
+            #     current_display = f"{current_student['first_name'].strip().title()} {current_student['last_name'].strip().title()} ({current_email})"
+            #     student_options = filtered["Display"].tolist()
+    
+            #     # try:
+            #         # selected_display = st.multiselect(
+            #         #     "Choose 3–15 students",
+            #         #     student_options,
+            #         #     default=[current_display]
+            #         # )
+            #     selected_display = st.multiselect(
+            #         "Choose 3–15 students (you must be part of your own group)",
+            #         student_options,
+            #         default=[current_display]
+            #     )
+                
+            #     # Ensure current_display is always in the list
+            #     if current_display not in selected_display:
+            #         st.warning("You cannot remove yourself from the group. We've added you back.")
+            #         selected_display = [current_display] + [d for d in selected_display if d != current_display]
             # === Step 6: Ensure current student is selected and shown ===
             if st.session_state.user_role == "student":
                 current_student = st.session_state.current_student
                 current_email = current_student['email'].strip().lower()
-                current_display = f"{current_student['first_name'].strip().title()} {current_student['last_name'].strip().title()} ({current_email})"
+                current_fullname = f"{current_student['first_name'].strip().title()} {current_student['last_name'].strip().title()}"
+                current_display = f"{current_fullname} ({current_email})"
+            
+                # Add current_display to student_options if missing
                 student_options = filtered["Display"].tolist()
-    
-                # try:
-                    # selected_display = st.multiselect(
-                    #     "Choose 3–15 students",
-                    #     student_options,
-                    #     default=[current_display]
-                    # )
+                if current_display not in student_options:
+                    student_options.insert(0, current_display)
+            
+                # Create an option label map with gray styling for the current student
+                def format_option(option):
+                    if option == current_display:
+                        return f"✅ {option} (You)"
+                    return option
+            
                 selected_display = st.multiselect(
                     "Choose 3–15 students (you must be part of your own group)",
-                    student_options,
-                    default=[current_display]
+                    options=student_options,
+                    default=[current_display],
+                    format_func=format_option
                 )
-                
-                # Ensure current_display is always in the list
+            
+                # Ensure current student can't be removed
                 if current_display not in selected_display:
-                    st.warning("You cannot remove yourself from the group. We've added you back.")
-                    selected_display = [current_display] + [d for d in selected_display if d != current_display]
+                    st.warning("You must be part of your group. We've re-added you.")
+                    selected_display = [current_display] + [opt for opt in selected_display if opt != current_display]
     
             #     except st.errors.StreamlitAPIException:
             #         st.error(
