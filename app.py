@@ -290,7 +290,7 @@ if st.session_state.user_role == "student":
             if st.session_state.user_role == "student":
                 current_student = st.session_state.current_student
                 current_email = current_student['email'].strip().upper()
-                current_display = f"{current_student['First Name'].strip().title()} {current_student['Surname'].strip().title()} ({current_email})"
+                current_display = f"{current_student['first_name'].strip().title()} {current_student['last_name'].strip().title()} ({current_email})"
                 student_options = filtered["Display"].tolist()
     
                 try:
