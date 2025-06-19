@@ -310,22 +310,102 @@ if st.session_state.user_role == "student":
             #         st.warning("You cannot remove yourself from the group. We've added you back.")
             #         selected_display = [current_display] + [d for d in selected_display if d != current_display]
             # === Step 6: Ensure current student is selected and shown ===
+            # if st.session_state.user_role == "student":
+            #     current_student = st.session_state.current_student
+            #     current_email = current_student['email'].strip().lower()
+            #     current_fullname = f"{current_student['first_name'].strip().title()} {current_student['last_name'].strip().title()}"
+            #     current_display = f"{current_fullname} ({current_email})"
+            
+            #     # Add current_display to student_options if missing
+            #     student_options = filtered["Display"].tolist()
+            #     if current_display not in student_options:
+            #         student_options.insert(0, current_display)
+            
+            #     # Create an option label map with gray styling for the current student
+            #     def format_option(option):
+            #         if option == current_display:
+            #             return f"✅ {option} (You)"
+            #         return option
+            
+            #     selected_display = st.multiselect(
+            #         "Choose 3–15 students (you must be part of your own group)",
+            #         options=student_options,
+            #         default=[current_display],
+            #         format_func=format_option
+            #     )
+            
+            #     # Ensure current student can't be removed
+            #     if current_display not in selected_display:
+            #         st.warning("You must be part of your group. We've re-added you.")
+            #         selected_display = [current_display] + [opt for opt in selected_display if opt != current_display]
+    
+            # #     except st.errors.StreamlitAPIException:
+            # #         st.error(
+            # #             f"""🚫 You must select your correct **Faculty** and **Programme** to proceed.
+                    
+            # # Your name {current_display} is not listed among the students in the selected department.
+    
+            # # Please go back and double-check your selection."""
+            # #         )
+            # #         st.stop()
+    
+    
+            # # selected_matrics = [display_to_matric[item] for item in selected_display if item in display_to_matric]
+            #     selected_names = [display_to_name[item] for item in selected_display if item in display_to_name]
+            #     selected_emails = [display_to_email[item] for item in selected_display if item in display_to_email]
+        
+            #     # === Step 7: Group name & submit ===
+            #     group_name = st.text_input("Enter Group Name")
+        
+            #     existing_group_names = st.session_state.groups_df["group_name"].tolist() if not st.session_state.groups_df.empty else []
+    
+            # # ========== Handle Group Creation with Block and Auto-Logout ==========
+            # if block_form:
+            #     st.warning("🚫 You have already created a group for this programme.")
+    
+            #     # Optionally log them out immediately
+            #     if st.button("🚪 Logout Now"):
+            #         for key in ["authenticated", "user_email", "user_role", "current_student"]:
+            #             st.session_state.pop(key, None)
+            #         st.rerun()
+            #     else:
+            #         if st.button("Create Group"):
+            #             st.error("You have already created a group for this programme and are now being logged out.")
+            #             for key in ["authenticated", "user_email", "user_role", "current_student"]:
+            #                 st.session_state.pop(key, None)
+            #             st.rerun()
+            # else:
+            #     if st.button("Create Group"):
+            #         if len(selected_emails) < 3:
+            #             st.warning("You must select at least 3 students.")
+            #         elif len(selected_emails) > 15:
+            #             st.warning("You can't select more than 15 students.")
+            #         elif not group_name:
+            #             st.warning("Please provide a group name.")
+            #         elif group_name in existing_group_names:
+            #             st.error("Group name already exists.")
+            #         else:
+            #             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            #             new_row = [
+            #                 timestamp, group_name, faculty, department, selected_course,
+            #                 ", ".join(selected_emails), ", ".join(selected_names), st.session_state.user_email
+            #             ]
+    
+            #             if not st.session_state.groups_ws.get_all_values():
+            #                 st.session_state.groups_ws.append_row(["timestamp", "group_name", "faculty", "department", "course", "members", "member_names", "created_by"])
+            #             st.session_state.groups_ws.append_row(new_row)
             if st.session_state.user_role == "student":
                 current_student = st.session_state.current_student
                 current_email = current_student['email'].strip().lower()
                 current_fullname = f"{current_student['first_name'].strip().title()} {current_student['last_name'].strip().title()}"
                 current_display = f"{current_fullname} ({current_email})"
             
-                # Add current_display to student_options if missing
                 student_options = filtered["Display"].tolist()
                 if current_display not in student_options:
                     student_options.insert(0, current_display)
             
-                # Create an option label map with gray styling for the current student
                 def format_option(option):
-                    if option == current_display:
-                        return f"✅ {option} (You)"
-                    return option
+                    return f"✅ {option} (You)" if option == current_display else option
             
                 selected_display = st.multiselect(
                     "Choose 3–15 students (you must be part of your own group)",
@@ -334,67 +414,51 @@ if st.session_state.user_role == "student":
                     format_func=format_option
                 )
             
-                # Ensure current student can't be removed
                 if current_display not in selected_display:
                     st.warning("You must be part of your group. We've re-added you.")
                     selected_display = [current_display] + [opt for opt in selected_display if opt != current_display]
-    
-            #     except st.errors.StreamlitAPIException:
-            #         st.error(
-            #             f"""🚫 You must select your correct **Faculty** and **Programme** to proceed.
-                    
-            # Your name {current_display} is not listed among the students in the selected department.
-    
-            # Please go back and double-check your selection."""
-            #         )
-            #         st.stop()
-    
-    
-            # selected_matrics = [display_to_matric[item] for item in selected_display if item in display_to_matric]
+            
                 selected_names = [display_to_name[item] for item in selected_display if item in display_to_name]
                 selected_emails = [display_to_email[item] for item in selected_display if item in display_to_email]
-        
-                # === Step 7: Group name & submit ===
+            
                 group_name = st.text_input("Enter Group Name")
-        
                 existing_group_names = st.session_state.groups_df["group_name"].tolist() if not st.session_state.groups_df.empty else []
-    
-            # ========== Handle Group Creation with Block and Auto-Logout ==========
-            if block_form:
-                st.warning("🚫 You have already created a group for this programme.")
-    
-                # Optionally log them out immediately
-                if st.button("🚪 Logout Now"):
-                    for key in ["authenticated", "user_email", "user_role", "current_student"]:
-                        st.session_state.pop(key, None)
-                    st.rerun()
-                else:
-                    if st.button("Create Group"):
+            
+                if block_form:
+                    st.warning("🚫 You have already created a group for this programme.")
+                    if st.button("🚪 Logout Now"):
+                        for key in ["authenticated", "user_email", "user_role", "current_student"]:
+                            st.session_state.pop(key, None)
+                        st.rerun()
+                    elif st.button("Create Group"):
                         st.error("You have already created a group for this programme and are now being logged out.")
                         for key in ["authenticated", "user_email", "user_role", "current_student"]:
                             st.session_state.pop(key, None)
                         st.rerun()
-            else:
-                if st.button("Create Group"):
-                    if len(selected_emails) < 3:
-                        st.warning("You must select at least 3 students.")
-                    elif len(selected_emails) > 15:
-                        st.warning("You can't select more than 15 students.")
-                    elif not group_name:
-                        st.warning("Please provide a group name.")
-                    elif group_name in existing_group_names:
-                        st.error("Group name already exists.")
-                    else:
-                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        new_row = [
-                            timestamp, group_name, faculty, department, selected_course,
-                            ", ".join(selected_emails), ", ".join(selected_names), st.session_state.user_email
-                        ]
-    
-                        if not st.session_state.groups_ws.get_all_values():
-                            st.session_state.groups_ws.append_row(["timestamp", "group_name", "faculty", "department", "course", "members", "member_names", "created_by"])
-                        st.session_state.groups_ws.append_row(new_row)
-    
+                else:
+                    if st.button("Create Group"):
+                        if len(selected_emails) < 3:
+                            st.warning("You must select at least 3 students.")
+                        elif len(selected_emails) > 15:
+                            st.warning("You can't select more than 15 students.")
+                        elif not group_name:
+                            st.warning("Please provide a group name.")
+                        elif group_name in existing_group_names:
+                            st.error("Group name already exists.")
+                        else:
+                            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            new_row = [
+                                timestamp, group_name, faculty, department, selected_course,
+                                ", ".join(selected_emails), ", ".join(selected_names), st.session_state.user_email
+                            ]
+            
+                            if not st.session_state.groups_ws.get_all_values():
+                                st.session_state.groups_ws.append_row([
+                                    "timestamp", "group_name", "faculty", "department", "course", "members", "member_names", "created_by"
+                                ])
+            
+                            st.session_state.groups_ws.append_row(new_row)
+
                         # Email each member
                         for email, name in zip(selected_emails, selected_names):
                             subject = f"[{selected_course}] You've been added to '{group_name}'"
