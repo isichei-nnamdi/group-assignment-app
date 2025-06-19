@@ -38,10 +38,11 @@ try:
 
     # ========== Load Data & Cache ==========
     def load_students_df():
-        ws = client.open_by_key(student_sheet_id).worksheet("UNDERGRADUATE")
+        # ws = client.open_by_key(student_sheet_id).worksheet("UNDERGRADUATE")
+        ws = client.open_by_key(student_sheet_id).worksheet("Enrolled Students")
         df = pd.DataFrame(ws.get_all_records())
-        df["Email"] = df["Email"].str.strip().str.lower()
-        df["Student ID"] = df["Student ID"].astype(str).str.strip()
+        df["email"] = df["email"].str.strip().str.lower()
+        df["student_id"] = df["student_id"].astype(str).str.strip()
         return df
 
     def load_login_df():
@@ -101,8 +102,8 @@ def authenticate(email, password):
     email = email.strip().lower()
     password = str(password).strip()
     student_match = st.session_state.students_df[
-        (st.session_state.students_df["MIVA Email"] == email) &
-        (st.session_state.students_df["Student ID"] == password)
+        (st.session_state.students_df["email"] == email) &
+        (st.session_state.students_df["student_id"] == password)
     ]
     admin_match = st.session_state.login_df[
         (st.session_state.login_df["Email"] == email) &
@@ -156,8 +157,8 @@ if st.session_state.user_role == "student":
 
         # Clean fields
         df = st.session_state.students_df.copy()
-        df['Faculty'] = df['Faculty'].str.strip().str.title()
-        df['Programme'] = df['Programme'].str.strip().str.title()
+        df['faculty'] = df['faculty'].str.strip().str.title()
+        df['program'] = df['program'].str.strip().str.title()
 
         # ========== Group Creation (Student or Admin) ==========
         existing = pd.DataFrame()
@@ -165,10 +166,10 @@ if st.session_state.user_role == "student":
 
 
         # === Step 1: Faculty & Department Selection ===
-        faculty_list = sorted(df['Faculty'].dropna().unique())
+        faculty_list = sorted(df['faculty'].dropna().unique())
         faculty = st.selectbox("Select Faculty", faculty_list)
 
-        dept_list = sorted(df[df['Faculty'] == faculty]['Programme'].dropna().unique())
+        dept_list = sorted(df[df['faculty'] == faculty]['program'].dropna().unique())
         department = st.selectbox("Select Department", dept_list)
 
         # === Step 2: Course Selection ===
@@ -233,10 +234,10 @@ if st.session_state.user_role == "student":
         # Get current student's details
         if st.session_state.user_role == "student":
             current_student = st.session_state.current_student
-            current_matric = current_student['Matric Number'].strip().upper()
+            current_email = current_student['email'].strip().upper()
         else:
             current_student = None
-            current_matric = None
+            current_email = None
 
 
 
@@ -244,7 +245,7 @@ if st.session_state.user_role == "student":
         # filtered = df[
         #     (df['Faculty'] == faculty) &
         #     (df['Programme'] == department) &
-        #     (~df['Matric Number'].astype(str).str.upper().isin(already_grouped) | (df['Matric Number'].astype(str).str.upper() == current_matric))
+        #     (~df['Matric Number'].astype(str).str.upper().isin(already_grouped) | (df['Matric Number'].astype(str).str.upper() == current_email))
         # ].copy()
 
         # # === Step 4: Clean names and emails ===
@@ -256,7 +257,7 @@ if st.session_state.user_role == "student":
         # filtered["Display"] = filtered["First Name"] + " " + filtered["Surname"] + " (" + filtered["Matric Number"] + ")"
 
         # === Check if current student is already grouped ===
-        if current_matric in already_grouped:
+        if current_email in already_grouped:
             st.warning("You have already been added to a group for this course and cannot create another group.")
             st.markdown("---")
             if st.button("Logout"):
@@ -267,29 +268,29 @@ if st.session_state.user_role == "student":
             # filtered = df[
             #     (df['Faculty'] == faculty) &
             #     (df['Programme'] == department) &
-            #     (~df['Matric Number'].astype(str).str.upper().isin(already_grouped) | (df['Matric Number'].astype(str).str.upper() == current_matric))
+            #     (~df['Matric Number'].astype(str).str.upper().isin(already_grouped) | (df['Matric Number'].astype(str).str.upper() == current_email))
             # ].copy()
             filtered = df[
-                (~df['Matric Number'].astype(str).str.upper().isin(already_grouped) | (df['Matric Number'].astype(str).str.upper() == current_matric))
+                (~df['email'].astype(str).str.upper().isin(already_grouped) | (df['email'].astype(str).str.upper() == current_email))
             ].copy()
         
             # === Step 4: Clean names and emails ===
             filtered["First Name"] = filtered["First Name"].str.strip().str.title()
             filtered["Surname"] = filtered["Surname"].str.strip().str.title()
-            filtered["Matric Number"] = filtered["Matric Number"].astype(str).str.strip().str.upper()
-            filtered["MIVA Email"] = filtered["MIVA Email"].str.strip()
-            filtered["Display"] = filtered["First Name"] + " " + filtered["Surname"] + " (" + filtered["Matric Number"] + ")"
+            filtered["email"] = filtered["email"].astype(str).str.strip().str.upper()
+            filtered["email"] = filtered["email"].str.strip()
+            filtered["Display"] = filtered["fullname"] + " (" + filtered["email"] + ")"
 
             # === Step 5: Add mappings for multiselect ===
-            display_to_matric = dict(zip(filtered["Display"], filtered["Matric Number"]))
-            display_to_name = dict(zip(filtered["Display"], filtered["First Name"] + " " + filtered["Surname"]))
-            display_to_email = dict(zip(filtered["Display"], filtered["MIVA Email"]))
+            # display_to_matric = dict(zip(filtered["Display"], filtered["email"]))
+            display_to_name = dict(zip(filtered["Display"], filtered["fullname"]))
+            display_to_email = dict(zip(filtered["Display"], filtered["email"]))
 
             # === Step 6: Ensure current student is selected and shown ===
             if st.session_state.user_role == "student":
                 current_student = st.session_state.current_student
-                current_matric = current_student['Matric Number'].strip().upper()
-                current_display = f"{current_student['First Name'].strip().title()} {current_student['Surname'].strip().title()} ({current_matric})"
+                current_email = current_student['email'].strip().upper()
+                current_display = f"{current_student['First Name'].strip().title()} {current_student['Surname'].strip().title()} ({current_email})"
                 student_options = filtered["Display"].tolist()
     
                 try:
@@ -320,7 +321,7 @@ if st.session_state.user_role == "student":
                     st.stop()
     
     
-            selected_matrics = [display_to_matric[item] for item in selected_display if item in display_to_matric]
+            # selected_matrics = [display_to_matric[item] for item in selected_display if item in display_to_matric]
             selected_names = [display_to_name[item] for item in selected_display if item in display_to_name]
             selected_emails = [display_to_email[item] for item in selected_display if item in display_to_email]
     
@@ -346,9 +347,9 @@ if st.session_state.user_role == "student":
                         st.rerun()
             else:
                 if st.button("Create Group"):
-                    if len(selected_matrics) < 3:
+                    if len(selected_email) < 3:
                         st.warning("You must select at least 3 students.")
-                    elif len(selected_matrics) > 15:
+                    elif len(selected_email) > 15:
                         st.warning("You can't select more than 15 students.")
                     elif not group_name:
                         st.warning("Please provide a group name.")
@@ -358,7 +359,7 @@ if st.session_state.user_role == "student":
                         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                         new_row = [
                             timestamp, group_name, faculty, department, selected_course,
-                            ", ".join(selected_matrics), ", ".join(selected_names), st.session_state.user_email
+                            ", ".join(selected_email), ", ".join(selected_names), st.session_state.user_email
                         ]
     
                         if not st.session_state.groups_ws.get_all_values():
