@@ -359,7 +359,7 @@ if st.session_state.user_role == "student":
                         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                         new_row = [
                             timestamp, group_name, faculty, department, selected_course,
-                            ", ".join(selected_email), ", ".join(selected_names), st.session_state.user_email
+                            ", ".join(selected_emails), ", ".join(selected_names), st.session_state.user_email
                         ]
     
                         if not st.session_state.groups_ws.get_all_values():
