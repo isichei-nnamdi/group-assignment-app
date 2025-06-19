@@ -234,7 +234,7 @@ if st.session_state.user_role == "student":
         # Get current student's details
         if st.session_state.user_role == "student":
             current_student = st.session_state.current_student
-            current_email = current_student['email'].strip().upper()
+            current_email = current_student['email'].strip().lower()
         else:
             current_student = None
             current_email = None
@@ -271,14 +271,14 @@ if st.session_state.user_role == "student":
             #     (~df['Matric Number'].astype(str).str.upper().isin(already_grouped) | (df['Matric Number'].astype(str).str.upper() == current_email))
             # ].copy()
             filtered = df[
-                (~df['email'].astype(str).str.upper().isin(already_grouped) | (df['email'].astype(str).str.upper() == current_email))
+                (~df['email'].astype(str).str.lower().isin(already_grouped) | (df['email'].astype(str).str.lower() == current_email))
             ].copy()
         
             # === Step 4: Clean names and emails ===
             filtered["first_name"] = filtered["first_name"].str.strip().str.title()
             filtered["last_name"] = filtered["last_name"].str.strip().str.title()
-            filtered["email"] = filtered["email"].astype(str).str.strip().str.upper()
-            filtered["email"] = filtered["email"].str.strip()
+            filtered["email"] = filtered["email"].astype(str).str.strip().str.lower()
+            # filtered["email"] = filtered["email"].str.strip()
             filtered["Display"] = filtered["fullname"] + " (" + filtered["email"] + ")"
 
             # === Step 5: Add mappings for multiselect ===
@@ -289,7 +289,7 @@ if st.session_state.user_role == "student":
             # === Step 6: Ensure current student is selected and shown ===
             if st.session_state.user_role == "student":
                 current_student = st.session_state.current_student
-                current_email = current_student['email'].strip().upper()
+                current_email = current_student['email'].strip().lower()
                 current_display = f"{current_student['first_name'].strip().title()} {current_student['last_name'].strip().title()} ({current_email})"
                 student_options = filtered["Display"].tolist()
     
