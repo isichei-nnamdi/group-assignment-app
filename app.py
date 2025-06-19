@@ -262,7 +262,7 @@ if st.session_state.user_role == "student":
             st.markdown("---")
             if st.button("Logout"):
                 st.session_state.clear()
-                st.experimental_rerun()
+                st.rerun()
         else:
             # === Filter: All students in selected dept, excluding already grouped (except current student) ===
             # filtered = df[
@@ -436,6 +436,28 @@ if st.session_state.user_role == "student":
                             st.session_state.pop(key, None)
                         st.rerun()
                 else:
+                    # if st.button("Create Group"):
+                    #     if len(selected_emails) < 3:
+                    #         st.warning("You must select at least 3 students.")
+                    #     elif len(selected_emails) > 15:
+                    #         st.warning("You can't select more than 15 students.")
+                    #     elif not group_name:
+                    #         st.warning("Please provide a group name.")
+                    #     elif group_name in existing_group_names:
+                    #         st.error("Group name already exists.")
+                    #     else:
+                    #         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    #         new_row = [
+                    #             timestamp, group_name, faculty, department, selected_course,
+                    #             ", ".join(selected_emails), ", ".join(selected_names), st.session_state.user_email
+                    #         ]
+            
+                    #         if not st.session_state.groups_ws.get_all_values():
+                    #             st.session_state.groups_ws.append_row([
+                    #                 "timestamp", "group_name", "faculty", "department", "course", "members", "member_names", "created_by"
+                    #             ])
+            
+                    #         st.session_state.groups_ws.append_row(new_row)
                     if st.button("Create Group"):
                         if len(selected_emails) < 3:
                             st.warning("You must select at least 3 students.")
@@ -443,21 +465,37 @@ if st.session_state.user_role == "student":
                             st.warning("You can't select more than 15 students.")
                         elif not group_name:
                             st.warning("Please provide a group name.")
-                        elif group_name in existing_group_names:
-                            st.error("Group name already exists.")
                         else:
-                            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                            new_row = [
-                                timestamp, group_name, faculty, department, selected_course,
-                                ", ".join(selected_emails), ", ".join(selected_names), st.session_state.user_email
-                            ]
-            
-                            if not st.session_state.groups_ws.get_all_values():
-                                st.session_state.groups_ws.append_row([
-                                    "timestamp", "group_name", "faculty", "department", "course", "members", "member_names", "created_by"
-                                ])
-            
-                            st.session_state.groups_ws.append_row(new_row)
+                            # Refresh group names to ensure latest data
+                            latest_data = st.session_state.groups_ws.get_all_values()
+                            st.session_state.groups_df = pd.DataFrame(latest_data[1:], columns=latest_data[0]) if len(latest_data) > 1 else pd.DataFrame(columns=latest_data[0])
+                            existing_group_names = st.session_state.groups_df["group_name"].tolist()
+                    
+                            if group_name in existing_group_names:
+                                st.error("Group name already exists.")
+                            else:
+                                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                new_row = [
+                                    timestamp, group_name, faculty, department, selected_course,
+                                    ", ".join(selected_emails), ", ".join(selected_names), st.session_state.user_email
+                                ]
+                    
+                                # Initialize headers if sheet is empty
+                                if not st.session_state.groups_ws.get_all_values():
+                                    st.session_state.groups_ws.append_row([
+                                        "timestamp", "group_name", "faculty", "department", "course", "members", "member_names", "created_by"
+                                    ])
+                    
+                                # Append the new row
+                                st.session_state.groups_ws.append_row(new_row)
+                    
+                                # Refresh groups_df again after writing
+                                updated_data = st.session_state.groups_ws.get_all_values()
+                                st.session_state.groups_df = pd.DataFrame(updated_data[1:], columns=updated_data[0]) if len(updated_data) > 1 else pd.DataFrame(columns=updated_data[0])
+                    
+                                st.success("✅ Group created successfully!")
+                                st.rerun()
+
 
                         # Email each member
                         for email, name in zip(selected_emails, selected_names):
