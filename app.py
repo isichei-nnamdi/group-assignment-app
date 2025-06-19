@@ -275,8 +275,8 @@ if st.session_state.user_role == "student":
             ].copy()
         
             # === Step 4: Clean names and emails ===
-            filtered["First Name"] = filtered["First Name"].str.strip().str.title()
-            filtered["Surname"] = filtered["Surname"].str.strip().str.title()
+            filtered["first_name"] = filtered["first_name"].str.strip().str.title()
+            filtered["last_name"] = filtered["last_name"].str.strip().str.title()
             filtered["email"] = filtered["email"].astype(str).str.strip().str.upper()
             filtered["email"] = filtered["email"].str.strip()
             filtered["Display"] = filtered["fullname"] + " (" + filtered["email"] + ")"
