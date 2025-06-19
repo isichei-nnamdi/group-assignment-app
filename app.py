@@ -293,32 +293,32 @@ if st.session_state.user_role == "student":
                 current_display = f"{current_student['first_name'].strip().title()} {current_student['last_name'].strip().title()} ({current_email})"
                 student_options = filtered["Display"].tolist()
     
-                try:
+                # try:
                     # selected_display = st.multiselect(
                     #     "Choose 3–15 students",
                     #     student_options,
                     #     default=[current_display]
                     # )
-                    selected_display = st.multiselect(
-                        "Choose 3–15 students (you must be part of your own group)",
-                        student_options,
-                        default=[current_display]
-                    )
-                    
-                    # Ensure current_display is always in the list
-                    if current_display not in selected_display:
-                        st.warning("You cannot remove yourself from the group. We've added you back.")
-                        selected_display = [current_display] + [d for d in selected_display if d != current_display]
+                selected_display = st.multiselect(
+                    "Choose 3–15 students (you must be part of your own group)",
+                    student_options,
+                    default=[current_display]
+                )
+                
+                # Ensure current_display is always in the list
+                if current_display not in selected_display:
+                    st.warning("You cannot remove yourself from the group. We've added you back.")
+                    selected_display = [current_display] + [d for d in selected_display if d != current_display]
     
-                except st.errors.StreamlitAPIException:
-                    st.error(
-                        f"""🚫 You must select your correct **Faculty** and **Programme** to proceed.
+            #     except st.errors.StreamlitAPIException:
+            #         st.error(
+            #             f"""🚫 You must select your correct **Faculty** and **Programme** to proceed.
                     
-            Your name {current_display} is not listed among the students in the selected department.
+            # Your name {current_display} is not listed among the students in the selected department.
     
-            Please go back and double-check your selection."""
-                    )
-                    st.stop()
+            # Please go back and double-check your selection."""
+            #         )
+            #         st.stop()
     
     
             # selected_matrics = [display_to_matric[item] for item in selected_display if item in display_to_matric]
