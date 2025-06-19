@@ -347,9 +347,9 @@ if st.session_state.user_role == "student":
                         st.rerun()
             else:
                 if st.button("Create Group"):
-                    if len(selected_email) < 3:
+                    if len(selected_emails) < 3:
                         st.warning("You must select at least 3 students.")
-                    elif len(selected_email) > 15:
+                    elif len(selected_emails) > 15:
                         st.warning("You can't select more than 15 students.")
                     elif not group_name:
                         st.warning("Please provide a group name.")
