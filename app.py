@@ -351,13 +351,13 @@ if st.session_state.user_role == "student":
     
     
             # selected_matrics = [display_to_matric[item] for item in selected_display if item in display_to_matric]
-            selected_names = [display_to_name[item] for item in selected_display if item in display_to_name]
-            selected_emails = [display_to_email[item] for item in selected_display if item in display_to_email]
-    
-            # === Step 7: Group name & submit ===
-            group_name = st.text_input("Enter Group Name")
-    
-            existing_group_names = st.session_state.groups_df["group_name"].tolist() if not st.session_state.groups_df.empty else []
+                selected_names = [display_to_name[item] for item in selected_display if item in display_to_name]
+                selected_emails = [display_to_email[item] for item in selected_display if item in display_to_email]
+        
+                # === Step 7: Group name & submit ===
+                group_name = st.text_input("Enter Group Name")
+        
+                existing_group_names = st.session_state.groups_df["group_name"].tolist() if not st.session_state.groups_df.empty else []
     
             # ========== Handle Group Creation with Block and Auto-Logout ==========
             if block_form:
@@ -376,7 +376,7 @@ if st.session_state.user_role == "student":
                         st.rerun()
             else:
                 if st.button("Create Group"):
-                    if len(selected_emails) <= 3:
+                    if len(selected_emails) < 3:
                         st.warning("You must select at least 3 students.")
                     elif len(selected_emails) > 15:
                         st.warning("You can't select more than 15 students.")
