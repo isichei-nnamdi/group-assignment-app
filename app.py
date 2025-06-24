@@ -13,7 +13,7 @@ import json
 
 st.set_page_config(
     page_title="CreateGroup",
-    page_icon="https://github.com/isichei-nnamdi/score_updater_app/blob/main/favicon_io/android-chrome-512x512.png",
+    page_icon="favicon_io/favicon-16x16.png",
     # layout="wide"
 )
 
