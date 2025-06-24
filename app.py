@@ -515,10 +515,13 @@ if st.session_state.user_role == "student":
                     if st.button("Create Group"):
                         if len(selected_emails) < 3:
                             st.warning("You must select at least 3 students.")
+                            st.stop()
                         elif len(selected_emails) > 15:
                             st.warning("You can't select more than 15 students.")
+                            st.stop()
                         elif not group_name:
                             st.warning("Please provide a group name.")
+                            st.stop()
                         else:
                             # Refresh group names to ensure latest data
                             latest_data = st.session_state.groups_ws.get_all_values()
@@ -527,6 +530,7 @@ if st.session_state.user_role == "student":
                     
                             if group_name in existing_group_names:
                                 st.error("Group name already exists.")
+                                st.stop()
                             else:
                                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                                 new_row = [
