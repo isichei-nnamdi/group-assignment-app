@@ -440,10 +440,10 @@ if st.session_state.user_role == "student":
 
             st.session_state.groups_ws.append_row(new_row)
     
-                        # Email each member
-                        for email, name in zip(selected_emails, selected_names):
-                            subject = f"[{selected_course}] You've been added to '{group_name}'"
-                            body = f"""
+            # Email each member
+            for email, name in zip(selected_emails, selected_names):
+                subject = f"[{selected_course}] You've been added to '{group_name}'"
+                body = f"""
             Dear {name},
     
             You have been added to the group '{group_name}' for the course {selected_course}, created by {st.session_state.user_email}.
