@@ -459,28 +459,28 @@ if st.session_state.user_role == "student":
             School of Computing,
             Miva Open University
             """
-                            msg = MIMEMultipart()
-                            msg['From'] = "Group Formation Support"
-                            msg['To'] = email
-                            msg['Subject'] = subject
-                            msg.attach(MIMEText(body, 'plain'))
-    
-                            try:
-                                server = smtplib.SMTP('smtp.gmail.com', 587)
-                                server.starttls()
-                                server.login(developer_email, developer_password)
-                                server.send_message(msg)
-                                server.quit()
-                            except Exception as e:
-                                st.warning(f"Failed to send email to {email}. Reason: {e}")
-    
-                        st.success(f"✅ Group '{group_name}' created and notifications sent!")
-    
-                        # Clear group_df from cache and log out the student
-                        del st.session_state.groups_df
-                        for key in ["authenticated", "user_email", "user_role", "current_student"]:
-                            st.session_state.pop(key, None)
-                        st.rerun()
+                msg = MIMEMultipart()
+                msg['From'] = "Group Formation Support"
+                msg['To'] = email
+                msg['Subject'] = subject
+                msg.attach(MIMEText(body, 'plain'))
+
+                try:
+                    server = smtplib.SMTP('smtp.gmail.com', 587)
+                    server.starttls()
+                    server.login(developer_email, developer_password)
+                    server.send_message(msg)
+                    server.quit()
+                except Exception as e:
+                    st.warning(f"Failed to send email to {email}. Reason: {e}")
+
+            st.success(f"✅ Group '{group_name}' created and notifications sent!")
+
+            # Clear group_df from cache and log out the student
+            del st.session_state.groups_df
+            for key in ["authenticated", "user_email", "user_role", "current_student"]:
+                st.session_state.pop(key, None)
+            st.rerun()
 
 
 # ========== Admin Panel ==========
