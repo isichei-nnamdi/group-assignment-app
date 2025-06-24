@@ -377,85 +377,87 @@ if st.session_state.user_role == "student":
                     elif not group_name:
                         st.warning("Please provide a group name.")
                         st.stop()
-                
-                    # === Refresh group names from sheet for accurate checking ===
-                    latest_data = st.session_state.groups_ws.get_all_values()
-                    st.session_state.groups_df = pd.DataFrame(latest_data[1:], columns=latest_data[0]) if len(latest_data) > 1 else pd.DataFrame(columns=latest_data[0])
-                    existing_group_names = st.session_state.groups_df["group_name"].tolist()
-                
-                    # === Check for duplicate group name ===
-                    if group_name.strip().lower() in [g.strip().lower() for g in existing_group_names]:
-                        st.error("Group name already exists.")
-                        st.stop()
-                
-                    # === Pull grouped emails again to check if any selected student is already grouped ===
-                    already_grouped = []
-                    for _, row in st.session_state.groups_df.iterrows():
-                        if row["course"].strip().lower() == selected_course.strip().lower():
-                            already_grouped.extend([m.strip().lower() for m in row["members"].split(",")])
-                
-                    duplicate_students = [email for email in selected_emails if email.lower() in already_grouped]
-                
-                    if duplicate_students:
-                        st.error("🚫 One or more selected students have already been added to a group for this course:\n\n" +
-                                 "\n".join(f"- {email}" for email in duplicate_students))
-                        st.stop()
-                
-                    # === All validations passed: Save the group ===
-                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    new_row = [
-                        timestamp, group_name, faculty, department, selected_course,
-                        ", ".join(selected_emails), ", ".join(selected_names), st.session_state.user_email
-                    ]
-                
-                    if not st.session_state.groups_ws.get_all_values():
-                        st.session_state.groups_ws.append_row([
-                            "timestamp", "group_name", "faculty", "department", "course", "members", "member_names", "created_by"
-                        ])
-                
-                    st.session_state.groups_ws.append_row(new_row)
 
-                    # Email each member
-                    for email, name in zip(selected_emails, selected_names):
-                        subject = f"[{selected_course}] You've been added to '{group_name}'"
-                        body = f"""
-        Dear {name},
-
-        You have been added to the group '{group_name}' for the course {selected_course}, created by {st.session_state.user_email}.
-
-        Group Members:
-        {chr(10).join(f"- {n} ({e})" for n, e in zip(selected_names, selected_emails))}
-
-        Please collaborate with your teammates.
-
-        Best regards,  
-        
-        Group Formation Support,
-        School of Computing,
-        Miva Open University
-        """
-                        msg = MIMEMultipart()
-                        msg['From'] = "Group Formation Support"
-                        msg['To'] = email
-                        msg['Subject'] = subject
-                        msg.attach(MIMEText(body, 'plain'))
-
-                        try:
-                            server = smtplib.SMTP('smtp.gmail.com', 587)
-                            server.starttls()
-                            server.login(developer_email, developer_password)
-                            server.send_message(msg)
-                            server.quit()
-                        except Exception as e:
-                            st.warning(f"Failed to send email to {email}. Reason: {e}")
-
-                    st.success(f"✅ Group '{group_name}' created and notifications sent!")
-
-                    # Clear group_df from cache and log out the student
-                    del st.session_state.groups_df
-                    for key in ["authenticated", "user_email", "user_role", "current_student"]:
-                        st.session_state.pop(key, None)
-                    st.rerun()
+                    else:
+                
+                        # === Refresh group names from sheet for accurate checking ===
+                        latest_data = st.session_state.groups_ws.get_all_values()
+                        st.session_state.groups_df = pd.DataFrame(latest_data[1:], columns=latest_data[0]) if len(latest_data) > 1 else pd.DataFrame(columns=latest_data[0])
+                        existing_group_names = st.session_state.groups_df["group_name"].tolist()
+                    
+                        # === Check for duplicate group name ===
+                        if group_name.strip().lower() in [g.strip().lower() for g in existing_group_names]:
+                            st.error("Group name already exists.")
+                            st.stop()
+                    
+                        # === Pull grouped emails again to check if any selected student is already grouped ===
+                        already_grouped = []
+                        for _, row in st.session_state.groups_df.iterrows():
+                            if row["course"].strip().lower() == selected_course.strip().lower():
+                                already_grouped.extend([m.strip().lower() for m in row["members"].split(",")])
+                    
+                        duplicate_students = [email for email in selected_emails if email.lower() in already_grouped]
+                    
+                        if duplicate_students:
+                            st.error("🚫 One or more selected students have already been added to a group for this course:\n\n" +
+                                     "\n".join(f"- {email}" for email in duplicate_students))
+                            st.stop()
+                    
+                        # === All validations passed: Save the group ===
+                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        new_row = [
+                            timestamp, group_name, faculty, department, selected_course,
+                            ", ".join(selected_emails), ", ".join(selected_names), st.session_state.user_email
+                        ]
+                    
+                        if not st.session_state.groups_ws.get_all_values():
+                            st.session_state.groups_ws.append_row([
+                                "timestamp", "group_name", "faculty", "department", "course", "members", "member_names", "created_by"
+                            ])
+                    
+                        st.session_state.groups_ws.append_row(new_row)
+    
+                        # Email each member
+                        for email, name in zip(selected_emails, selected_names):
+                            subject = f"[{selected_course}] You've been added to '{group_name}'"
+                            body = f"""
+            Dear {name},
+    
+            You have been added to the group '{group_name}' for the course {selected_course}, created by {st.session_state.user_email}.
+    
+            Group Members:
+            {chr(10).join(f"- {n} ({e})" for n, e in zip(selected_names, selected_emails))}
+    
+            Please collaborate with your teammates.
+    
+            Best regards,  
+            
+            Group Formation Support,
+            School of Computing,
+            Miva Open University
+            """
+                            msg = MIMEMultipart()
+                            msg['From'] = "Group Formation Support"
+                            msg['To'] = email
+                            msg['Subject'] = subject
+                            msg.attach(MIMEText(body, 'plain'))
+    
+                            try:
+                                server = smtplib.SMTP('smtp.gmail.com', 587)
+                                server.starttls()
+                                server.login(developer_email, developer_password)
+                                server.send_message(msg)
+                                server.quit()
+                            except Exception as e:
+                                st.warning(f"Failed to send email to {email}. Reason: {e}")
+    
+                        st.success(f"✅ Group '{group_name}' created and notifications sent!")
+    
+                        # Clear group_df from cache and log out the student
+                        del st.session_state.groups_df
+                        for key in ["authenticated", "user_email", "user_role", "current_student"]:
+                            st.session_state.pop(key, None)
+                        st.rerun()
 
 
 # ========== Admin Panel ==========
