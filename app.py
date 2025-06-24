@@ -11,6 +11,11 @@ from google.auth.exceptions import TransportError
 import socket
 import json
 
+st.set_page_config(
+    page_title="CreateGroup",
+    page_icon="https://github.com/isichei-nnamdi/score_updater_app/blob/main/favicon_io/android-chrome-512x512.png",
+    layout="wide"
+)
 
 try:
     # ========== Google Sheets Auth ==========
