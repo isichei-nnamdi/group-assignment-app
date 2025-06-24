@@ -185,77 +185,82 @@ if st.session_state.user_role == "student":
                 ]
                 if not existing.empty:
                     block_form = True # allow rendering but block action later
-        # === Step 3: Prevent duplicate group creation by same student for same course ===
-        # if st.session_state.user_role == "student":
-        #     block_form = False  # Default state
-        #     user_email = st.session_state.user_email.lower()
-        
-        #     # Prevent a user from creating more than one group per course
-        #     if "created_by" in st.session_state.groups_df.columns and "course" in st.session_state.groups_df.columns:
-        #         existing_group = st.session_state.groups_df[
-        #             (st.session_state.groups_df["created_by"].str.lower() == user_email) &
-        #             (st.session_state.groups_df["course"].str.lower() == selected_course.lower())
-        #         ]
-        #         if not existing_group.empty:
-        #             st.warning("You have already created a group for this course.")
-        #             block_form = True
-        
-        #     # Prevent any student from being added to more than one group per course
-        #     if "members" in st.session_state.groups_df.columns and "course" in st.session_state.groups_df.columns:
-        #         # Filter only the groups for the selected course
-        #         course_groups = st.session_state.groups_df[
-        #             st.session_state.groups_df["course"].str.lower() == selected_course.lower()
-        #         ]
-        
-        #         # Flatten the list of all members for this course
-        #         existing_members = set()
-        #         for row in course_groups["members"].dropna():
-        #             for matric in [m.strip().upper() for m in row.split(",")]:
-        #                 existing_members.add(matric)
-        
-        #         # Check if any of the current inputs (matric numbers) are already in a group
-        #         submitted_members = [m.strip().upper() for m in group_matric_list]  # your list from the form input
-        
-        #         duplicate_members = [m for m in submitted_members if m in existing_members]
-        #         if duplicate_members:
-        #             st.error(f"The following matric number(s) are already in another group for this course: {', '.join(duplicate_members)}")
-        #             block_form = True
 
+            # === Step 4: Remove already grouped students for the same course ===
+            # already_grouped = []
+            # if "members" in st.session_state.groups_df.columns and "course" in st.session_state.groups_df.columns:
+            #     for _, row in st.session_state.groups_df.iterrows():
+            #         if row["course"].strip().lower() == selected_course.strip().lower():
+            #             already_grouped.extend([m.strip().upper() for m in row["members"].split(",")])
+    
+    
+            # # Get current student's details
+            # if st.session_state.user_role == "student":
+            #     current_student = st.session_state.current_student
+            #     current_email = current_student['email'].strip().lower()
+            # else:
+            #     current_student = None
+            #     current_email = None
+    
+            # # === Check if current student is already grouped ===
+            # if current_email in already_grouped:
+            #     st.warning("You have already been added to a group for this course and cannot create another group.")
+            #     st.markdown("---")
+            #     if st.button("Logout"):
+            #         st.session_state.clear()
+            #         st.rerun()
+            # else:
+            #     filtered = df[
+            #         (~df['email'].astype(str).str.lower().isin(already_grouped) | (df['email'].astype(str).str.lower() == current_email))
+            #     ].copy()
+            
+            #     # === Step 4: Clean names and emails ===
+            #     filtered["first_name"] = filtered["first_name"].str.strip().str.title()
+            #     filtered["last_name"] = filtered["last_name"].str.strip().str.title()
+            #     filtered["email"] = filtered["email"].astype(str).str.strip().str.lower()
+            #     filtered["Display"] = filtered["fullname"] + " (" + filtered["email"] + ")"
+    
+            #     # === Step 5: Add mappings for multiselect ===
+            #     display_to_name = dict(zip(filtered["Display"], filtered["fullname"]))
+            #     display_to_email = dict(zip(filtered["Display"], filtered["email"]))
+    
 
-
+            #     if st.session_state.user_role == "student":
+            #         current_student = st.session_state.current_student
+            #         current_email = current_student['email'].strip().lower()
+            #         current_fullname = f"{current_student['first_name'].strip().title()} {current_student['last_name'].strip().title()}"
+            #         current_display = f"{current_fullname} ({current_email})"
+                
+            #         student_options = filtered["Display"].tolist()
+            #         if current_display not in student_options:
+            #             student_options.insert(0, current_display)
+                
+            #         def format_option(option):
+            #             return f"✅ {option} (You)" if option == current_display else option
+                
+            #         selected_display = st.multiselect(
+            #             "Choose 3–15 students (you must be part of your own group)",
+            #             options=student_options,
+            #             default=[current_display],
+            #             format_func=format_option
+            #         )
+                
+            #         if current_display not in selected_display:
+            #             st.warning("You must be part of your group. We've re-added you.")
+            #             selected_display = [current_display] + [opt for opt in selected_display if opt != current_display]
             # === Step 4: Remove already grouped students for the same course ===
             already_grouped = []
             if "members" in st.session_state.groups_df.columns and "course" in st.session_state.groups_df.columns:
                 for _, row in st.session_state.groups_df.iterrows():
                     if row["course"].strip().lower() == selected_course.strip().lower():
-                        already_grouped.extend([m.strip().upper() for m in row["members"].split(",")])
-    
-    
+                        already_grouped.extend([m.strip().lower() for m in row["members"].split(",")])  # lowercase for consistency
+            
             # Get current student's details
-            if st.session_state.user_role == "student":
-                current_student = st.session_state.current_student
-                current_email = current_student['email'].strip().lower()
-            else:
-                current_student = None
-                current_email = None
-    
-    
-    
-            # Filter: All students in selected dept, excluding already grouped (except current student)
-            # filtered = df[
-            #     (df['Faculty'] == faculty) &
-            #     (df['Programme'] == department) &
-            #     (~df['Matric Number'].astype(str).str.upper().isin(already_grouped) | (df['Matric Number'].astype(str).str.upper() == current_email))
-            # ].copy()
-    
-            # # === Step 4: Clean names and emails ===
-            # filtered["First Name"] = filtered["First Name"].str.strip().str.title()
-            # filtered["Surname"] = filtered["Surname"].str.strip().str.title()
-            # filtered["Matric Number"] = filtered["Matric Number"].astype(str).str.strip().str.upper()
-            # filtered["MIVA Email"] = filtered["MIVA Email"].str.strip()
-    
-            # filtered["Display"] = filtered["First Name"] + " " + filtered["Surname"] + " (" + filtered["Matric Number"] + ")"
-    
+            current_student = st.session_state.current_student if st.session_state.user_role == "student" else None
+            current_email = current_student['email'].strip().lower() if current_student else None
+            current_fullname = f"{current_student['first_name'].strip().title()} {current_student['last_name'].strip().title()}" if current_student else ""
+            current_display = f"{current_fullname} ({current_email})" if current_student else ""
+            
             # === Check if current student is already grouped ===
             if current_email in already_grouped:
                 st.warning("You have already been added to a group for this course and cannot create another group.")
@@ -264,159 +269,43 @@ if st.session_state.user_role == "student":
                     st.session_state.clear()
                     st.rerun()
             else:
-                # === Filter: All students in selected dept, excluding already grouped (except current student) ===
-                # filtered = df[
-                #     (df['Faculty'] == faculty) &
-                #     (df['Programme'] == department) &
-                #     (~df['Matric Number'].astype(str).str.upper().isin(already_grouped) | (df['Matric Number'].astype(str).str.upper() == current_email))
-                # ].copy()
+                # === Filter: Remove already grouped students (except current user)
                 filtered = df[
-                    (~df['email'].astype(str).str.lower().isin(already_grouped) | (df['email'].astype(str).str.lower() == current_email))
+                    ~df['email'].str.strip().str.lower().isin([e for e in already_grouped if e != current_email])
                 ].copy()
             
-                # === Step 4: Clean names and emails ===
+                # === Clean & Prepare Display Column ===
                 filtered["first_name"] = filtered["first_name"].str.strip().str.title()
                 filtered["last_name"] = filtered["last_name"].str.strip().str.title()
                 filtered["email"] = filtered["email"].astype(str).str.strip().str.lower()
-                # filtered["email"] = filtered["email"].str.strip()
+                filtered["fullname"] = filtered["first_name"] + " " + filtered["last_name"]
                 filtered["Display"] = filtered["fullname"] + " (" + filtered["email"] + ")"
-    
-                # === Step 5: Add mappings for multiselect ===
-                # display_to_matric = dict(zip(filtered["Display"], filtered["email"]))
+            
+                # === Mapping for selection ===
                 display_to_name = dict(zip(filtered["Display"], filtered["fullname"]))
                 display_to_email = dict(zip(filtered["Display"], filtered["email"]))
-    
-                # # === Step 6: Ensure current student is selected and shown ===
-                # if st.session_state.user_role == "student":
-                #     current_student = st.session_state.current_student
-                #     current_email = current_student['email'].strip().lower()
-                #     current_display = f"{current_student['first_name'].strip().title()} {current_student['last_name'].strip().title()} ({current_email})"
-                #     student_options = filtered["Display"].tolist()
-        
-                #     # try:
-                #         # selected_display = st.multiselect(
-                #         #     "Choose 3–15 students",
-                #         #     student_options,
-                #         #     default=[current_display]
-                #         # )
-                #     selected_display = st.multiselect(
-                #         "Choose 3–15 students (you must be part of your own group)",
-                #         student_options,
-                #         default=[current_display]
-                #     )
-                    
-                #     # Ensure current_display is always in the list
-                #     if current_display not in selected_display:
-                #         st.warning("You cannot remove yourself from the group. We've added you back.")
-                #         selected_display = [current_display] + [d for d in selected_display if d != current_display]
-                # === Step 6: Ensure current student is selected and shown ===
-                # if st.session_state.user_role == "student":
-                #     current_student = st.session_state.current_student
-                #     current_email = current_student['email'].strip().lower()
-                #     current_fullname = f"{current_student['first_name'].strip().title()} {current_student['last_name'].strip().title()}"
-                #     current_display = f"{current_fullname} ({current_email})"
-                
-                #     # Add current_display to student_options if missing
-                #     student_options = filtered["Display"].tolist()
-                #     if current_display not in student_options:
-                #         student_options.insert(0, current_display)
-                
-                #     # Create an option label map with gray styling for the current student
-                #     def format_option(option):
-                #         if option == current_display:
-                #             return f"✅ {option} (You)"
-                #         return option
-                
-                #     selected_display = st.multiselect(
-                #         "Choose 3–15 students (you must be part of your own group)",
-                #         options=student_options,
-                #         default=[current_display],
-                #         format_func=format_option
-                #     )
-                
-                #     # Ensure current student can't be removed
-                #     if current_display not in selected_display:
-                #         st.warning("You must be part of your group. We've re-added you.")
-                #         selected_display = [current_display] + [opt for opt in selected_display if opt != current_display]
-        
-                # #     except st.errors.StreamlitAPIException:
-                # #         st.error(
-                # #             f"""🚫 You must select your correct **Faculty** and **Programme** to proceed.
-                        
-                # # Your name {current_display} is not listed among the students in the selected department.
-        
-                # # Please go back and double-check your selection."""
-                # #         )
-                # #         st.stop()
-        
-        
-                # # selected_matrics = [display_to_matric[item] for item in selected_display if item in display_to_matric]
-                #     selected_names = [display_to_name[item] for item in selected_display if item in display_to_name]
-                #     selected_emails = [display_to_email[item] for item in selected_display if item in display_to_email]
             
-                #     # === Step 7: Group name & submit ===
-                #     group_name = st.text_input("Enter Group Name")
+                student_options = filtered["Display"].tolist()
+                
+                # Ensure current student is always in the list
+                if current_display not in student_options:
+                    student_options.insert(0, current_display)
             
-                #     existing_group_names = st.session_state.groups_df["group_name"].tolist() if not st.session_state.groups_df.empty else []
-        
-                # # ========== Handle Group Creation with Block and Auto-Logout ==========
-                # if block_form:
-                #     st.warning("🚫 You have already created a group for this programme.")
-        
-                #     # Optionally log them out immediately
-                #     if st.button("🚪 Logout Now"):
-                #         for key in ["authenticated", "user_email", "user_role", "current_student"]:
-                #             st.session_state.pop(key, None)
-                #         st.rerun()
-                #     else:
-                #         if st.button("Create Group"):
-                #             st.error("You have already created a group for this programme and are now being logged out.")
-                #             for key in ["authenticated", "user_email", "user_role", "current_student"]:
-                #                 st.session_state.pop(key, None)
-                #             st.rerun()
-                # else:
-                #     if st.button("Create Group"):
-                #         if len(selected_emails) < 3:
-                #             st.warning("You must select at least 3 students.")
-                #         elif len(selected_emails) > 15:
-                #             st.warning("You can't select more than 15 students.")
-                #         elif not group_name:
-                #             st.warning("Please provide a group name.")
-                #         elif group_name in existing_group_names:
-                #             st.error("Group name already exists.")
-                #         else:
-                #             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                #             new_row = [
-                #                 timestamp, group_name, faculty, department, selected_course,
-                #                 ", ".join(selected_emails), ", ".join(selected_names), st.session_state.user_email
-                #             ]
-        
-                #             if not st.session_state.groups_ws.get_all_values():
-                #                 st.session_state.groups_ws.append_row(["timestamp", "group_name", "faculty", "department", "course", "members", "member_names", "created_by"])
-                #             st.session_state.groups_ws.append_row(new_row)
-                if st.session_state.user_role == "student":
-                    current_student = st.session_state.current_student
-                    current_email = current_student['email'].strip().lower()
-                    current_fullname = f"{current_student['first_name'].strip().title()} {current_student['last_name'].strip().title()}"
-                    current_display = f"{current_fullname} ({current_email})"
-                
-                    student_options = filtered["Display"].tolist()
-                    if current_display not in student_options:
-                        student_options.insert(0, current_display)
-                
-                    def format_option(option):
-                        return f"✅ {option} (You)" if option == current_display else option
-                
-                    selected_display = st.multiselect(
-                        "Choose 3–15 students (you must be part of your own group)",
-                        options=student_options,
-                        default=[current_display],
-                        format_func=format_option
-                    )
-                
-                    if current_display not in selected_display:
-                        st.warning("You must be part of your group. We've re-added you.")
-                        selected_display = [current_display] + [opt for opt in selected_display if opt != current_display]
+                def format_option(option):
+                    return f"✅ {option} (You)" if option == current_display else option
+            
+                selected_display = st.multiselect(
+                    "Choose 3–15 students (you must be part of your own group)",
+                    options=student_options,
+                    default=[current_display],
+                    format_func=format_option
+                )
+            
+                # Prevent removing current student
+                if current_display not in selected_display:
+                    st.warning("You must be part of your group. We've re-added you.")
+                    selected_display = [current_display] + [opt for opt in selected_display if opt != current_display]
+
                 
                     selected_names = [display_to_name[item] for item in selected_display if item in display_to_name]
                     selected_emails = [display_to_email[item] for item in selected_display if item in display_to_email]
@@ -436,28 +325,7 @@ if st.session_state.user_role == "student":
                                 st.session_state.pop(key, None)
                             st.rerun()
                     else:
-                        # if st.button("Create Group"):
-                        #     if len(selected_emails) < 3:
-                        #         st.warning("You must select at least 3 students.")
-                        #     elif len(selected_emails) > 15:
-                        #         st.warning("You can't select more than 15 students.")
-                        #     elif not group_name:
-                        #         st.warning("Please provide a group name.")
-                        #     elif group_name in existing_group_names:
-                        #         st.error("Group name already exists.")
-                        #     else:
-                        #         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        #         new_row = [
-                        #             timestamp, group_name, faculty, department, selected_course,
-                        #             ", ".join(selected_emails), ", ".join(selected_names), st.session_state.user_email
-                        #         ]
-                
-                        #         if not st.session_state.groups_ws.get_all_values():
-                        #             st.session_state.groups_ws.append_row([
-                        #                 "timestamp", "group_name", "faculty", "department", "course", "members", "member_names", "created_by"
-                        #             ])
-                
-                        #         st.session_state.groups_ws.append_row(new_row)
+                    
                         if st.button("Create Group"):
                             if len(selected_emails) < 3:
                                 st.warning("You must select at least 3 students.")
@@ -492,13 +360,6 @@ if st.session_state.user_role == "student":
                         
                                     # Append the new row
                                     st.session_state.groups_ws.append_row(new_row)
-                        
-                                    # Refresh groups_df again after writing
-                                    # updated_data = st.session_state.groups_ws.get_all_values()
-                                    # st.session_state.groups_df = pd.DataFrame(updated_data[1:], columns=updated_data[0]) if len(updated_data) > 1 else pd.DataFrame(columns=updated_data[0])
-                        
-                                    # st.success("✅ Group created successfully!")
-                                    # st.rerun()    
     
                             # Email each member
                             for email, name in zip(selected_emails, selected_names):
