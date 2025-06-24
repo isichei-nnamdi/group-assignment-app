@@ -258,7 +258,7 @@ if st.session_state.user_role == "student":
             
             # === Step 2: Get current student info ===
             current_student = st.session_state.current_student if st.session_state.user_role == "student" else None
-            current_student_row = df[df["email"] == current_email]
+            # current_student_row = df[df["email"] == current_email]
 
             if not current_student_row.empty:
                 current_student = current_student_row.iloc[0]  # Extract the first row as a Series
