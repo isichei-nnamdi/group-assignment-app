@@ -497,8 +497,8 @@ if st.session_state.user_role == "student":
                                     # updated_data = st.session_state.groups_ws.get_all_values()
                                     # st.session_state.groups_df = pd.DataFrame(updated_data[1:], columns=updated_data[0]) if len(updated_data) > 1 else pd.DataFrame(columns=updated_data[0])
                         
-                                    st.success("✅ Group created successfully!")
-                                    st.rerun()    
+                                    # st.success("✅ Group created successfully!")
+                                    # st.rerun()    
     
                             # Email each member
                             for email, name in zip(selected_emails, selected_names):
