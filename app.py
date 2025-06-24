@@ -257,19 +257,27 @@ if st.session_state.user_role == "student":
                         already_grouped.extend([m.strip().lower() for m in row["members"].split(",")])
             
             # === Step 2: Get current student info ===
-            current_student = st.session_state.current_student if st.session_state.user_role == "student" else None
-            current_email = st.session_state.get("user_email", "").strip().lower()
+            # current_student = st.session_state.current_student if st.session_state.user_role == "student" else None
+            # current_email = st.session_state.get("user_email", "").strip().lower()
 
-            # Try to find the matching student row
-            current_student_row = df[df["email"].str.strip().str.lower() == current_email]
+            # # Try to find the matching student row
+            # current_student_row = df[df["email"].str.strip().str.lower() == current_email]
             
-            if not current_student_row.empty:
-                current_student = current_student_row.iloc[0]  # safely get the first (only) row
-                current_email = current_student["email"].strip().lower()  # overwrite safely
-            else:
-                st.error("Your record was not found in the student list. Please contact support.")
-                st.stop()
+            # if not current_student_row.empty:
+            #     current_student = current_student_row.iloc[0]  # safely get the first (only) row
+            #     current_email = current_student["email"].strip().lower()  # overwrite safely
+            # else:
+            #     st.error("Your record was not found in the student list. Please contact support.")
+            #     st.stop()
 
+            # Get current student's details
+            # if st.session_state.user_role == "student":
+            if st.session_state.user_role == "student":
+                current_student = st.session_state.current_student
+                current_email = current_student['email'].strip().lower()
+            else:
+                current_student = None
+                current_email = None
 
             # current_email = current_student["email"].strip().lower() if current_student else None
             current_fullname = f"{current_student['first_name'].strip().title()} {current_student['last_name'].strip().title()}" if current_student else ""
