@@ -1,19 +1,59 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2.service_account import Credentials
 
+try:
+    # ========== Google Sheets Auth ==========
+    scope = [
+        "https://spreadsheets.google.com/feeds",
+        "https://www.googleapis.com/auth/drive"
+    ]
+    
+    # Load credentials from secrets
+    creds = Credentials.from_service_account_info(
+        st.secrets["google_service_account"],
+        scopes=scope
+    )
+    
+    client = gspread.authorize(creds)
+    
+    # Now safely access sheet IDs
+    sheet_id = st.secrets["google_service_account"]["student_sheet_id"]
+    
+    # Access sheet IDs from secrets
+    student_sheet_id = st.secrets["google_service_account"]["student_sheet_id"]
+    group_log_sheet_id = st.secrets["google_service_account"]["group_log_sheet_id"]
+    developer_email = st.secrets["google_service_account"]["developer_email"]
+    developer_password = st.secrets["google_service_account"]["developer_password"]
+
+    # ========== Load Data & Cache ==========
+    def load_lab_list():
+    labs_ws = client.open_by_key(group_log_sheet_id).worksheet("Labs")
+    return sorted(pd.Series(labs_ws.col_values(2)).dropna().unique())  # Assumes column 2 has lab names
+
+    if "lab_list" not in st.session_state:
+        st.session_state.lab_list = load_lab_list()
+    
+except (gspread.exceptions.APIError, socket.gaierror, TransportError, Exception) as e:
+    st.error(
+        f"""
+    🚫 **Connection Error**
+
+    We couldn't connect to the database or load required data. Please check your internet connection or try again later.
+
+    **Details:** `{str(e)}`
+
+    If the issue persists, contact the app administrator.
+    """)
+    st.stop()
 
 # def load_labs_sheet():
 #     return pd.DataFrame(st.session_state.labs_ws.get_all_records())
 
 # labs_df = load_labs_sheet()
 # @st.cache_data
-def load_lab_list():
-    labs_ws = client.open_by_key(group_log_sheet_id).worksheet("Labs")
-    return sorted(pd.Series(labs_ws.col_values(2)).dropna().unique())  # Assumes column 2 has lab names
-
-if "lab_list" not in st.session_state:
-    st.session_state.lab_list = load_lab_list()
 
 
 
