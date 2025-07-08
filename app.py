@@ -10,6 +10,9 @@ from email.mime.multipart import MIMEMultipart
 from google.auth.exceptions import TransportError
 import socket
 import json
+from student_submission_page import student_submission_page
+
+
 
 st.set_page_config(
     page_title="CreateGroup",
@@ -178,11 +181,12 @@ if st.session_state.user_role == "student":
 
         if not existing.empty:
             st.warning("🚫 You have already created a group for this course.")
-            if st.button("🚪 Logout Now"):
-                for key in ["authenticated", "user_email", "user_role", "current_student"]:
-                    st.session_state.pop(key, None)
-                st.rerun()
-            st.stop()
+            # if st.button("🚪 Logout Now"):
+            #     for key in ["authenticated", "user_email", "user_role", "current_student"]:
+            #         st.session_state.pop(key, None)
+            #     st.rerun()
+            student_submission_page()
+            # st.stop()
 
         # Get all already grouped students
         already_grouped = []
@@ -192,10 +196,11 @@ if st.session_state.user_role == "student":
 
         if current_email in already_grouped:
             st.warning("You have already been added to a group for this course and cannot create another.")
-            if st.button("Logout"):
-                st.session_state.clear()
-                st.rerun()
-            st.stop()
+            # if st.button("Logout"):
+            #     st.session_state.clear()
+            #     st.rerun()
+            # st.stop()
+            student_submission_page()
 
         # Filter eligible students
         eligible_df = df[~df["email"].isin(already_grouped) | (df["email"] == current_email)].copy()
@@ -305,12 +310,12 @@ if st.session_state.user_role == "student":
                     st.warning(f"Failed to send email to {email}. Reason: {e}")
 
             st.success(f"✅ Group '{group_name}' created and notifications sent!")
-
+            student_submission_page()
             # Clear group_df from cache and log out the student
-            del st.session_state.groups_df
-            for key in ["authenticated", "user_email", "user_role", "current_student"]:
-                st.session_state.pop(key, None)
-            st.rerun()
+            # del st.session_state.groups_df
+            # for key in ["authenticated", "user_email", "user_role", "current_student"]:
+            #     st.session_state.pop(key, None)
+            # st.rerun()
 
 
 # ========== Admin Panel ==========
