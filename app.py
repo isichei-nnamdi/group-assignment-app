@@ -181,6 +181,7 @@ if st.session_state.user_role == "student":
 
         if not existing.empty:
             st.warning("🚫 You have already created a group for this course.")
+            st.write("Submission Columns:", submissions_df.columns.tolist())
             # 🔍 Find your group info
             group_row = st.session_state.groups_df[
                 (st.session_state.groups_df["course"].str.lower() == selected_course.lower()) &
