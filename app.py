@@ -192,7 +192,8 @@ if st.session_state.user_role == "student":
                 group_info = group_row.iloc[0].to_dict()
         
                 from student_submission_page import student_submission_page
-                student_submission_page(group_info, selected_course, current_email, client, group_log_sheet_id)
+
+                student_submission_page(group_info, selected_course, current_email, client, group_log_sheet_id, creds)
         
                 st.stop()
             else:
@@ -228,7 +229,7 @@ if st.session_state.user_role == "student":
                 group_info = group_row.iloc[0].to_dict()
         
                 from student_submission_page import student_submission_page
-                student_submission_page(group_info, selected_course, current_email, client, group_log_sheet_id)
+                student_submission_page(group_info, selected_course, current_email, client, group_log_sheet_id, creds)
         
                 st.stop()
             else:
@@ -353,7 +354,7 @@ if st.session_state.user_role == "student":
             
             # ✅ Call the submission page
             from student_submission_page import student_submission_page
-            student_submission_page(group_info, selected_course, current_email, client, group_log_sheet_id)
+            student_submission_page(group_info, selected_course, current_email, client, group_log_sheet_id, creds)
             
             st.stop()  # prevent rerun since we're showing the submission page now
             # Clear group_df from cache and log out the student
