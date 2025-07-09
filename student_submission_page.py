@@ -41,6 +41,7 @@ def student_submission_page(group_info, selected_course, student_email, client, 
         return ws, df
 
     submissions_ws, submissions_df = load_submissions_df()
+    st.write("Submission Columns:", submissions_df.columns.tolist())
 
     # ===== Check for Existing Submission =====
     existing = submissions_df[
