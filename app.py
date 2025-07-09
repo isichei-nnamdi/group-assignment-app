@@ -43,6 +43,7 @@ try:
     group_log_sheet_id = st.secrets["google_service_account"]["group_log_sheet_id"]
     developer_email = st.secrets["google_service_account"]["developer_email"]
     developer_password = st.secrets["google_service_account"]["developer_password"]
+    folder_id = st.secrets["google_service_account"]["folder_id"]
 
     # ========== Load Data & Cache ==========
     def load_students_df():
@@ -191,7 +192,7 @@ if st.session_state.user_role == "student":
                 group_info = group_row.iloc[0].to_dict()
         
                 from student_submission_page import student_submission_page
-                student_submission_page(group_info, selected_course, current_email, client, group_log_sheet_id)
+                student_submission_page(group_info, selected_course, current_email, client, group_log_sheet_id, folder_id)
         
                 st.stop()
             else:
@@ -227,7 +228,7 @@ if st.session_state.user_role == "student":
                 group_info = group_row.iloc[0].to_dict()
         
                 from student_submission_page import student_submission_page
-                student_submission_page(group_info, selected_course, current_email, client, group_log_sheet_id)
+                student_submission_page(group_info, selected_course, current_email, client, group_log_sheet_id, folder_id)
         
                 st.stop()
             else:
@@ -352,7 +353,7 @@ if st.session_state.user_role == "student":
             
             # ✅ Call the submission page
             from student_submission_page import student_submission_page
-            student_submission_page(group_info, selected_course, current_email, client, group_log_sheet_id)
+            student_submission_page(group_info, selected_course, current_email, client, group_log_sheet_id, folder_id)
             
             st.stop()  # prevent rerun since we're showing the submission page now
             # Clear group_df from cache and log out the student
