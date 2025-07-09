@@ -149,7 +149,9 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 import io
 
-def student_submission_page(group_info, selected_course, student_email, client, sheet_id):
+
+
+def student_submission_page(group_info, selected_course, student_email, client, sheet_id, creds):
     st.markdown("---")
     st.subheader("📤 Group Lab Submission")
 
@@ -191,22 +193,44 @@ def student_submission_page(group_info, selected_course, student_email, client, 
             ])
         return ws, df
 
+    # def upload_to_drive(file_bytes, filename, folder_id, creds):
+    #     try:
+    #         drive_service = build("drive", "v3", credentials=creds)
+    #         file_metadata = {
+    #             "name": filename,
+    #             "parents": folder_id
+    #         }
+    #         media = MediaIoBaseUpload(io.BytesIO(file_bytes), mimetype='application/octet-stream')
+    #         uploaded_file = drive_service.files().create(
+    #             body=file_metadata,
+    #             media_body=media,
+    #             fields="id, webViewLink"
+    #         ).execute()
+    #         return uploaded_file["webViewLink"]
+    #     except Exception as e:
+    #         st.error(f"Failed to upload to Drive: {e}")
+    #         return None
     def upload_to_drive(file_bytes, filename, folder_id, creds):
         try:
-            drive_service = build("drive", "v3", credentials=creds)
+            service = build("drive", "v3", credentials=creds)
+    
             file_metadata = {
                 "name": filename,
-                "parents": folder_id
+                "parents": [folder_id]
             }
-            media = MediaIoBaseUpload(io.BytesIO(file_bytes), mimetype='application/octet-stream')
-            uploaded_file = drive_service.files().create(
+            media = MediaIoBaseUpload(BytesIO(file_bytes), mimetype="application/octet-stream")
+    
+            uploaded_file = service.files().create(
                 body=file_metadata,
                 media_body=media,
-                fields="id, webViewLink"
+                fields="id"
             ).execute()
-            return uploaded_file["webViewLink"]
+    
+            file_id = uploaded_file.get("id")
+            return f"https://drive.google.com/file/d/{file_id}/view?usp=sharing"
+    
         except Exception as e:
-            st.error(f"Failed to upload to Drive: {e}")
+            st.error(f"Drive upload failed: {e}")
             return None
         
     submissions_ws, submissions_df = load_submissions_df(client, sheet_id)
