@@ -181,11 +181,27 @@ if st.session_state.user_role == "student":
 
         if not existing.empty:
             st.warning("🚫 You have already created a group for this course.")
-            if st.button("🚪 Logout Now"):
-                for key in ["authenticated", "user_email", "user_role", "current_student"]:
-                    st.session_state.pop(key, None)
-                st.rerun()
-            st.stop()
+            # 🔍 Find your group info
+            group_row = st.session_state.groups_df[
+                (st.session_state.groups_df["course"].str.lower() == selected_course.lower()) &
+                (st.session_state.groups_df["members"].str.lower().str.contains(current_email))
+            ]
+        
+            if not group_row.empty:
+                group_info = group_row.iloc[0].to_dict()
+        
+                from student_submission_page import student_submission_page
+                student_submission_page(group_info, selected_course, current_email, client, group_log_sheet_id)
+        
+                st.stop()
+            else:
+                st.warning("You are grouped, but group info couldn't be found.")
+                st.stop()
+            # if st.button("🚪 Logout Now"):
+            #     for key in ["authenticated", "user_email", "user_role", "current_student"]:
+            #         st.session_state.pop(key, None)
+            #     st.rerun()
+            # st.stop()
 
         # Get all already grouped students
         already_grouped = []
