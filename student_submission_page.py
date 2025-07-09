@@ -287,7 +287,9 @@ def student_submission_page(group_info, selected_course, student_email, client, 
         
             # Upload to Drive
             folder_id = st.secrets["google_service_account"]["drive_folder_id"]
-            drive_link = upload_to_drive(file_bytes, uploaded.name, folder_id, client.auth.credentials)
+            # drive_link = upload_to_drive(file_bytes, uploaded.name, folder_id, client.auth.credentials)
+            drive_link = upload_to_drive(file_bytes, uploaded.name, folder_id, creds)
+
         
             if not drive_link:
                 st.error("❌ Could not upload the file.")
