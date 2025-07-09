@@ -19,7 +19,7 @@ def student_submission_page(group_info, selected_course, student_email, client, 
         except Exception as e:
             st.error(f"Unable to load lab list: {e}")
             return []
-
+    
         lab_list = load_lab_list()
     
         if not lab_list:
@@ -30,26 +30,26 @@ def student_submission_page(group_info, selected_course, student_email, client, 
         selected_lab = st.selectbox("Select Lab to Submit", lab_list)
         submission_key = f"{group_name}_{selected_course}_{selected_lab}".replace(" ", "_").lower()
     
-        # ===== Load Submissions Sheet =====
-       def load_submissions_df():
-            try:
-                ws = client.open_by_key(sheet_id).worksheet("Submissions")
-            except:
-                ws = client.open_by_key(sheet_id).add_worksheet(title="Submissions", rows="1000", cols="10")
-                ws.append_row(["timestamp", "group_name", "course", "lab", "submitted_by", "file_name", "file_data", "graded", "grade"])
-        
-            records = ws.get_all_values()
-        
-            if len(records) > 1:
-                df = pd.DataFrame(records[1:], columns=records[0])
-            else:
-                # Return an empty DataFrame with the correct columns
-                df = pd.DataFrame(columns=[
-                    "timestamp", "group_name", "course", "lab",
-                    "submitted_by", "file_name", "file_data", "graded", "grade"
-                ])
-        
-            return ws, df
+    # ===== Load Submissions Sheet =====
+    def load_submissions_df():
+        try:
+            ws = client.open_by_key(sheet_id).worksheet("Submissions")
+        except:
+            ws = client.open_by_key(sheet_id).add_worksheet(title="Submissions", rows="1000", cols="10")
+            ws.append_row(["timestamp", "group_name", "course", "lab", "submitted_by", "file_name", "file_data", "graded", "grade"])
+    
+        records = ws.get_all_values()
+    
+        if len(records) > 1:
+            df = pd.DataFrame(records[1:], columns=records[0])
+        else:
+            # Return an empty DataFrame with the correct columns
+            df = pd.DataFrame(columns=[
+                "timestamp", "group_name", "course", "lab",
+                "submitted_by", "file_name", "file_data", "graded", "grade"
+            ])
+    
+        return ws, df
 
 
     submissions_ws, submissions_df = load_submissions_df()
