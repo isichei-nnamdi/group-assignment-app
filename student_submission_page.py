@@ -148,6 +148,7 @@ import base64
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 import io
+from io import BytesIO
 
 
 
