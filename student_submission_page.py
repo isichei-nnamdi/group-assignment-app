@@ -1,7 +1,8 @@
-# import streamlit as st
-# import pandas as pd
-# from datetime import datetime
-# from io import BytesIO
+import streamlit as st
+import pandas as pd
+from datetime import datetime
+from io import BytesIO
+import base64
 
 # def student_submission_page(group_info, selected_course, student_email, client, sheet_id):
 #     st.subheader("📝 Group Submission Page")
@@ -115,10 +116,7 @@
 #         content = uploaded_file.read().decode("utf-8")
 #         st.text_area("Preview Content", value=content, height=300)
 
-import streamlit as st
-import pandas as pd
-from datetime import datetime
-import base64
+
 
 
 # def load_lab_list(client, sheet_id):
@@ -142,50 +140,52 @@ import base64
 #     df = pd.DataFrame(ws.get_all_records())
 #     return ws, df
  # ===== Load Lab List =====
-@st.cache_data
-def load_lab_list():
-    try:
-        ws = client.open_by_key(sheet_id).worksheet("Labs")
-        return sorted(pd.Series(ws.col_values(1)).dropna().unique())
-    except Exception as e:
-        st.error(f"Unable to load lab list: {e}")
-        return []
-
-    lab_list = load_lab_list()
-
-    if not lab_list:
-        st.warning("No labs found for this course. Please check back later.")
-        return
-
-    # ===== Select Lab =====
-    selected_lab = st.selectbox("Select Lab to Submit", lab_list)
-    submission_key = f"{group_name}_{selected_course}_{selected_lab}".replace(" ", "_").lower()
-
-# ===== Load Submissions Sheet =====
-def load_submissions_df():
-    try:
-        ws = client.open_by_key(sheet_id).worksheet("Submissions")
-    except:
-        ws = client.open_by_key(sheet_id).add_worksheet(title="Submissions", rows="1000", cols="10")
-        ws.append_row(["timestamp", "group_name", "course", "lab", "submitted_by", "file_name", "file_data", "graded", "grade"])
-
-    records = ws.get_all_values()
-
-    if len(records) > 1:
-        df = pd.DataFrame(records[1:], columns=records[0])
-    else:
-        # Return an empty DataFrame with the correct columns
-        df = pd.DataFrame(columns=[
-            "timestamp", "group_name", "course", "lab",
-            "submitted_by", "file_name", "file_data", "graded", "grade"
-        ])
-
-    return ws, df
 
 
 def student_submission_page(group_info, selected_course, student_email, client, sheet_id):
     st.markdown("---")
     st.subheader("📤 Group Lab Submission")
+
+     # ===== Load Lab List =====
+    @st.cache_data
+    def load_lab_list():
+        try:
+            ws = client.open_by_key(sheet_id).worksheet("Labs")
+            return sorted(pd.Series(ws.col_values(1)).dropna().unique())
+        except Exception as e:
+            st.error(f"Unable to load lab list: {e}")
+            return []
+    
+        lab_list = load_lab_list()
+    
+        if not lab_list:
+            st.warning("No labs found for this course. Please check back later.")
+            return
+    
+        # ===== Select Lab =====
+        selected_lab = st.selectbox("Select Lab to Submit", lab_list)
+        submission_key = f"{group_name}_{selected_course}_{selected_lab}".replace(" ", "_").lower()
+    
+    # ===== Load Submissions Sheet =====
+    def load_submissions_df():
+        try:
+            ws = client.open_by_key(sheet_id).worksheet("Submissions")
+        except:
+            ws = client.open_by_key(sheet_id).add_worksheet(title="Submissions", rows="1000", cols="10")
+            ws.append_row(["timestamp", "group_name", "course", "lab", "submitted_by", "file_name", "file_data", "graded", "grade"])
+    
+        records = ws.get_all_values()
+    
+        if len(records) > 1:
+            df = pd.DataFrame(records[1:], columns=records[0])
+        else:
+            # Return an empty DataFrame with the correct columns
+            df = pd.DataFrame(columns=[
+                "timestamp", "group_name", "course", "lab",
+                "submitted_by", "file_name", "file_data", "graded", "grade"
+            ])
+    
+        return ws, df
 
     group_name = group_info['group_name']
     st.info(f"You're in **{group_name}** for the course **{selected_course}**")
