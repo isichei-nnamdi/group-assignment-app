@@ -121,25 +121,65 @@ from datetime import datetime
 import base64
 
 
-def load_lab_list(client, sheet_id):
+# def load_lab_list(client, sheet_id):
+#     try:
+#         ws = client.open_by_key(sheet_id).worksheet("Labs")
+#         return sorted(pd.Series(ws.col_values(1)).dropna().unique())
+#     except Exception as e:
+#         st.error(f"Failed to load lab list: {e}")
+#         return []
+
+
+# def load_submissions_df(client, sheet_id):
+#     try:
+#         ws = client.open_by_key(sheet_id).worksheet("Submissions")
+#     except:
+#         ws = client.open_by_key(sheet_id).add_worksheet(title="Submissions", rows="1000", cols="10")
+#         ws.append_row([
+#             "timestamp", "group_name", "course", "lab", "submitted_by",
+#             "file_name", "file_data", "graded", "grade"
+#         ])
+#     df = pd.DataFrame(ws.get_all_records())
+#     return ws, df
+ # ===== Load Lab List =====
+@st.cache_data
+def load_lab_list():
     try:
         ws = client.open_by_key(sheet_id).worksheet("Labs")
         return sorted(pd.Series(ws.col_values(1)).dropna().unique())
     except Exception as e:
-        st.error(f"Failed to load lab list: {e}")
+        st.error(f"Unable to load lab list: {e}")
         return []
 
+    lab_list = load_lab_list()
 
-def load_submissions_df(client, sheet_id):
+    if not lab_list:
+        st.warning("No labs found for this course. Please check back later.")
+        return
+
+    # ===== Select Lab =====
+    selected_lab = st.selectbox("Select Lab to Submit", lab_list)
+    submission_key = f"{group_name}_{selected_course}_{selected_lab}".replace(" ", "_").lower()
+
+# ===== Load Submissions Sheet =====
+def load_submissions_df():
     try:
         ws = client.open_by_key(sheet_id).worksheet("Submissions")
     except:
         ws = client.open_by_key(sheet_id).add_worksheet(title="Submissions", rows="1000", cols="10")
-        ws.append_row([
-            "timestamp", "group_name", "course", "lab", "submitted_by",
-            "file_name", "file_data", "graded", "grade"
+        ws.append_row(["timestamp", "group_name", "course", "lab", "submitted_by", "file_name", "file_data", "graded", "grade"])
+
+    records = ws.get_all_values()
+
+    if len(records) > 1:
+        df = pd.DataFrame(records[1:], columns=records[0])
+    else:
+        # Return an empty DataFrame with the correct columns
+        df = pd.DataFrame(columns=[
+            "timestamp", "group_name", "course", "lab",
+            "submitted_by", "file_name", "file_data", "graded", "grade"
         ])
-    df = pd.DataFrame(ws.get_all_records())
+
     return ws, df
 
 
