@@ -145,6 +145,9 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import base64
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseUpload
+import io
 
 def student_submission_page(group_info, selected_course, student_email, client, sheet_id):
     st.markdown("---")
@@ -188,6 +191,24 @@ def student_submission_page(group_info, selected_course, student_email, client, 
             ])
         return ws, df
 
+    def upload_to_drive(file_bytes, filename, folder_id, creds):
+        try:
+            drive_service = build("drive", "v3", credentials=creds)
+            file_metadata = {
+                "name": filename,
+                "parents": [folder_id]
+            }
+            media = MediaIoBaseUpload(io.BytesIO(file_bytes), mimetype='application/octet-stream')
+            uploaded_file = drive_service.files().create(
+                body=file_metadata,
+                media_body=media,
+                fields="id, webViewLink"
+            ).execute()
+            return uploaded_file["webViewLink"]
+        except Exception as e:
+            st.error(f"Failed to upload to Drive: {e}")
+            return None
+        
     submissions_ws, submissions_df = load_submissions_df(client, sheet_id)
 
     # Check for existing submission
@@ -222,17 +243,39 @@ def student_submission_page(group_info, selected_course, student_email, client, 
                 st.success("Submission deleted. You can now re-upload.")
                 st.rerun()
     else:
-        uploaded = st.file_uploader("📎 Upload Lab Document (PDF/Docx)", type=["pdf", "docx"])
+        uploaded = st.file_uploader("📎 Upload Lab Document (PDF/Docx)", type=["pdf", "docx", "ipynb", "py", "xlsx", "csv", "txt"])
+        # if uploaded and st.button("Submit Lab Report"):
+        #     file_bytes = uploaded.read()
+        #     encoded = base64.b64encode(file_bytes).decode()
+        #     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        #     new_row = [
+        #         timestamp, group_name, selected_course, selected_lab,
+        #         student_email, uploaded.name, encoded, "No", ""
+        #     ]
+
+        #     submissions_ws.append_row(new_row)
+        #     st.success("✅ Submission uploaded successfully!")
+        #     st.rerun()
         if uploaded and st.button("Submit Lab Report"):
             file_bytes = uploaded.read()
-            encoded = base64.b64encode(file_bytes).decode()
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
+        
+            # Upload to Drive
+            folder_id = st.secrets["google_service_account"]["drive_folder_id"]
+            drive_link = upload_to_drive(file_bytes, uploaded.name, folder_id, client.auth.credentials)
+        
+            if not drive_link:
+                st.error("❌ Could not upload the file.")
+                return
+        
+            # Save to Sheet
             new_row = [
                 timestamp, group_name, selected_course, selected_lab,
-                student_email, uploaded.name, encoded, "No", ""
+                student_email, uploaded.name, drive_link, "No", ""
             ]
-
             submissions_ws.append_row(new_row)
-            st.success("✅ Submission uploaded successfully!")
+            st.success("✅ Submission uploaded and saved!")
+            st.balloons()
             st.rerun()
+
