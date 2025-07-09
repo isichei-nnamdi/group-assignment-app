@@ -10,7 +10,7 @@ from email.mime.multipart import MIMEMultipart
 from google.auth.exceptions import TransportError
 import socket
 import json
-from student_submission_page import student_submission_page
+# from student_submission_page import student_submission_page
 
 
 
@@ -181,12 +181,11 @@ if st.session_state.user_role == "student":
 
         if not existing.empty:
             st.warning("🚫 You have already created a group for this course.")
-            # if st.button("🚪 Logout Now"):
-            #     for key in ["authenticated", "user_email", "user_role", "current_student"]:
-            #         st.session_state.pop(key, None)
-            #     st.rerun()
-            student_submission_page()
-            # st.stop()
+            if st.button("🚪 Logout Now"):
+                for key in ["authenticated", "user_email", "user_role", "current_student"]:
+                    st.session_state.pop(key, None)
+                st.rerun()
+            st.stop()
 
         # Get all already grouped students
         already_grouped = []
@@ -195,12 +194,29 @@ if st.session_state.user_role == "student":
                 already_grouped.extend([e.strip().lower() for e in row["members"].split(",")])
 
         if current_email in already_grouped:
-            st.warning("You have already been added to a group for this course and cannot create another.")
+            # st.warning("You have already been added to a group for this course and cannot create another.")
             # if st.button("Logout"):
             #     st.session_state.clear()
             #     st.rerun()
             # st.stop()
-            student_submission_page()
+            st.success("🎉 You are already in a group for this course.")
+    
+            # 🔍 Find your group info
+            group_row = st.session_state.groups_df[
+                (st.session_state.groups_df["course"].str.lower() == selected_course.lower()) &
+                (st.session_state.groups_df["members"].str.lower().str.contains(current_email))
+            ]
+        
+            if not group_row.empty:
+                group_info = group_row.iloc[0].to_dict()
+        
+                from student_submission_page import student_submission_page
+                student_submission_page(group_info, selected_course, current_email, client, group_log_sheet_id)
+        
+                st.stop()
+            else:
+                st.warning("You are grouped, but group info couldn't be found.")
+                st.stop()
 
         # Filter eligible students
         eligible_df = df[~df["email"].isin(already_grouped) | (df["email"] == current_email)].copy()
@@ -310,7 +326,19 @@ if st.session_state.user_role == "student":
                     st.warning(f"Failed to send email to {email}. Reason: {e}")
 
             st.success(f"✅ Group '{group_name}' created and notifications sent!")
-            student_submission_page()
+
+            # 🔁 Load the latest group info for submission
+            group_info = {
+                "group_name": group_name,
+                "members": ", ".join(selected_emails),
+                "member_names": ", ".join(selected_names),
+            }
+            
+            # ✅ Call the submission page
+            from student_submission_page import student_submission_page
+            student_submission_page(group_info, selected_course, current_email, client, group_log_sheet_id)
+            
+            st.stop()  # prevent rerun since we're showing the submission page now
             # Clear group_df from cache and log out the student
             # del st.session_state.groups_df
             # for key in ["authenticated", "user_email", "user_role", "current_student"]:
