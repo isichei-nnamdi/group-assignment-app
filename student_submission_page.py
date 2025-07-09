@@ -149,7 +149,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 import io
 
-def student_submission_page(group_info, selected_course, student_email, client, sheet_id, folder_id):
+def student_submission_page(group_info, selected_course, student_email, client, sheet_id):
     st.markdown("---")
     st.subheader("📤 Group Lab Submission")
 
