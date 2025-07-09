@@ -194,23 +194,6 @@ def student_submission_page(group_info, selected_course, student_email, client, 
             ])
         return ws, df
 
-    # def upload_to_drive(file_bytes, filename, folder_id, creds):
-    #     try:
-    #         drive_service = build("drive", "v3", credentials=creds)
-    #         file_metadata = {
-    #             "name": filename,
-    #             "parents": folder_id
-    #         }
-    #         media = MediaIoBaseUpload(io.BytesIO(file_bytes), mimetype='application/octet-stream')
-    #         uploaded_file = drive_service.files().create(
-    #             body=file_metadata,
-    #             media_body=media,
-    #             fields="id, webViewLink"
-    #         ).execute()
-    #         return uploaded_file["webViewLink"]
-    #     except Exception as e:
-    #         st.error(f"Failed to upload to Drive: {e}")
-    #         return None
     def upload_to_drive(file_bytes, filename, folder_id, creds):
         try:
             service = build("drive", "v3", credentials=creds)
@@ -221,6 +204,7 @@ def student_submission_page(group_info, selected_course, student_email, client, 
             }
             media = MediaIoBaseUpload(BytesIO(file_bytes), mimetype="application/octet-stream")
     
+            # Upload the file
             uploaded_file = service.files().create(
                 body=file_metadata,
                 media_body=media,
@@ -228,11 +212,44 @@ def student_submission_page(group_info, selected_course, student_email, client, 
             ).execute()
     
             file_id = uploaded_file.get("id")
+    
+            # Set permission to anyone with the link
+            permission = {
+                "type": "anyone",
+                "role": "reader"
+            }
+            service.permissions().create(
+                fileId=file_id,
+                body=permission
+            ).execute()
+    
             return f"https://drive.google.com/file/d/{file_id}/view?usp=sharing"
     
         except Exception as e:
             st.error(f"Drive upload failed: {e}")
             return None
+    # def upload_to_drive(file_bytes, filename, folder_id, creds):
+    #     try:
+    #         service = build("drive", "v3", credentials=creds)
+    
+    #         file_metadata = {
+    #             "name": filename,
+    #             "parents": [folder_id]
+    #         }
+    #         media = MediaIoBaseUpload(BytesIO(file_bytes), mimetype="application/octet-stream")
+    
+    #         uploaded_file = service.files().create(
+    #             body=file_metadata,
+    #             media_body=media,
+    #             fields="id"
+    #         ).execute()
+    
+    #         file_id = uploaded_file.get("id")
+    #         return f"https://drive.google.com/file/d/{file_id}/view?usp=sharing"
+    
+    #     except Exception as e:
+    #         st.error(f"Drive upload failed: {e}")
+    #         return None
         
     submissions_ws, submissions_df = load_submissions_df(client, sheet_id)
 
@@ -250,8 +267,39 @@ def student_submission_page(group_info, selected_course, student_email, client, 
         st.write(f"**Submitted by:** {existing['submitted_by'].iloc[0]}")
         st.write(f"**Filename:** {existing['file_name'].iloc[0]}")
 
-        file_data = base64.b64decode(existing['file_data'].iloc[0].encode())
-        st.download_button("📥 Download Submitted File", file_data, file_name=existing['file_name'].iloc[0])
+        # file_data = base64.b64decode(existing['file_data'].iloc[0].encode())
+        # st.download_button("📥 Download Submitted File", file_data, file_name=existing['file_name'].iloc[0])
+        file_link = existing['file_link'].iloc[0]
+        file_name = existing['file_name'].iloc[0]
+        file_extension = file_name.lower().split('.')[-1]
+        
+        st.markdown(f"📄 **File Name:** {file_name}")
+        st.markdown(f"[🔗 View or Download File]({file_link})")
+        
+        # Try to embed preview
+        if file_extension == "pdf":
+            # Embed PDF preview (works well)
+            preview_url = file_link.replace("/view?usp=drive_link", "/preview")
+            st.components.v1.iframe(preview_url, height=600)
+        
+        elif file_extension in ["doc", "docx", "ppt", "pptx", "xls", "xlsx"]:
+            # Google Docs Viewer (only if file is a Google-converted doc)
+            preview_url = f"https://docs.google.com/gview?url={file_link}&embedded=true"
+            st.components.v1.iframe(preview_url, height=600)
+        
+        elif file_extension == "ipynb":
+            # Jupyter Notebook viewer (via nbviewer)
+            from urllib.parse import quote
+            notebook_url = quote(file_link, safe='')
+            nbviewer_url = f"https://nbviewer.org/url/{notebook_url}"
+            st.markdown(f"[📘 View Notebook via nbviewer]({nbviewer_url})")
+        
+        elif file_extension in ["png", "jpg", "jpeg", "gif"]:
+            st.image(file_link, caption=file_name, use_column_width=True)
+        
+        else:
+            st.info("⚠️ Preview not supported for this file type. Please use the download link above.")
+
 
         if is_graded:
             st.info(f"📝 This submission has been graded: **{existing['grade'].iloc[0]}**")
