@@ -149,7 +149,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 import io
 
-def student_submission_page(group_info, selected_course, student_email, client, sheet_id):
+def student_submission_page(group_info, selected_course, student_email, client, sheet_id, folder_id):
     st.markdown("---")
     st.subheader("📤 Group Lab Submission")
 
@@ -196,7 +196,7 @@ def student_submission_page(group_info, selected_course, student_email, client, 
             drive_service = build("drive", "v3", credentials=creds)
             file_metadata = {
                 "name": filename,
-                "parents": [folder_id]
+                "parents": folder_id
             }
             media = MediaIoBaseUpload(io.BytesIO(file_bytes), mimetype='application/octet-stream')
             uploaded_file = drive_service.files().create(
