@@ -1,8 +1,8 @@
-import streamlit as st
-import pandas as pd
-from datetime import datetime
-from io import BytesIO
-import base64
+# import streamlit as st
+# import pandas as pd
+# from datetime import datetime
+# from io import BytesIO
+# import base64
 
 # def student_submission_page(group_info, selected_course, student_email, client, sheet_id):
 #     st.subheader("📝 Group Submission Page")
@@ -141,54 +141,27 @@ import base64
 #     return ws, df
  # ===== Load Lab List =====
 
+import streamlit as st
+import pandas as pd
+from datetime import datetime
+import base64
 
 def student_submission_page(group_info, selected_course, student_email, client, sheet_id):
     st.markdown("---")
     st.subheader("📤 Group Lab Submission")
 
-     # ===== Load Lab List =====
+    group_name = group_info['group_name']
+    st.info(f"You're in **{group_name}** for the course **{selected_course}**")
+
+    # ===== Load Lab List =====
     @st.cache_data
-    def load_lab_list():
+    def load_lab_list(_client, _sheet_id):
         try:
-            ws = client.open_by_key(sheet_id).worksheet("Labs")
+            ws = _client.open_by_key(_sheet_id).worksheet("Labs")
             return sorted(pd.Series(ws.col_values(1)).dropna().unique())
         except Exception as e:
             st.error(f"Unable to load lab list: {e}")
             return []
-    
-        lab_list = load_lab_list()
-    
-        if not lab_list:
-            st.warning("No labs found for this course. Please check back later.")
-            return
-    
-        # ===== Select Lab =====
-        selected_lab = st.selectbox("Select Lab to Submit", lab_list)
-        submission_key = f"{group_name}_{selected_course}_{selected_lab}".replace(" ", "_").lower()
-    
-    # ===== Load Submissions Sheet =====
-    def load_submissions_df():
-        try:
-            ws = client.open_by_key(sheet_id).worksheet("Submissions")
-        except:
-            ws = client.open_by_key(sheet_id).add_worksheet(title="Submissions", rows="1000", cols="10")
-            ws.append_row(["timestamp", "group_name", "course", "lab", "submitted_by", "file_name", "file_data", "graded", "grade"])
-    
-        records = ws.get_all_values()
-    
-        if len(records) > 1:
-            df = pd.DataFrame(records[1:], columns=records[0])
-        else:
-            # Return an empty DataFrame with the correct columns
-            df = pd.DataFrame(columns=[
-                "timestamp", "group_name", "course", "lab",
-                "submitted_by", "file_name", "file_data", "graded", "grade"
-            ])
-    
-        return ws, df
-
-    group_name = group_info['group_name']
-    st.info(f"You're in **{group_name}** for the course **{selected_course}**")
 
     lab_list = load_lab_list(client, sheet_id)
     if not lab_list:
@@ -197,10 +170,27 @@ def student_submission_page(group_info, selected_course, student_email, client, 
 
     selected_lab = st.selectbox("Select Lab to Submit", lab_list)
 
-    # Load submissions
+    # ===== Load Submissions Sheet =====
+    def load_submissions_df(_client, _sheet_id):
+        try:
+            ws = _client.open_by_key(_sheet_id).worksheet("Submissions")
+        except:
+            ws = _client.open_by_key(_sheet_id).add_worksheet(title="Submissions", rows="1000", cols="10")
+            ws.append_row(["timestamp", "group_name", "course", "lab", "submitted_by", "file_name", "file_data", "graded", "grade"])
+
+        records = ws.get_all_values()
+        if len(records) > 1:
+            df = pd.DataFrame(records[1:], columns=records[0])
+        else:
+            df = pd.DataFrame(columns=[
+                "timestamp", "group_name", "course", "lab",
+                "submitted_by", "file_name", "file_data", "graded", "grade"
+            ])
+        return ws, df
+
     submissions_ws, submissions_df = load_submissions_df(client, sheet_id)
 
-    # Check for existing submission for this group/course/lab
+    # Check for existing submission
     existing = submissions_df[
         (submissions_df["group_name"].str.lower() == group_name.lower()) &
         (submissions_df["course"].str.lower() == selected_course.lower()) &
@@ -214,7 +204,6 @@ def student_submission_page(group_info, selected_course, student_email, client, 
         st.write(f"**Submitted by:** {existing['submitted_by'].iloc[0]}")
         st.write(f"**Filename:** {existing['file_name'].iloc[0]}")
 
-        # Provide download option
         file_data = base64.b64decode(existing['file_data'].iloc[0].encode())
         st.download_button("📥 Download Submitted File", file_data, file_name=existing['file_name'].iloc[0])
 
@@ -222,7 +211,6 @@ def student_submission_page(group_info, selected_course, student_email, client, 
             st.info(f"📝 This submission has been graded: **{existing['grade'].iloc[0]}**")
         else:
             if st.button("🗑️ Delete Submission and Re-upload"):
-                # Remove existing row and save df back
                 submissions_df = submissions_df.drop(existing.index)
                 submissions_ws.clear()
                 submissions_ws.append_row([
@@ -232,10 +220,9 @@ def student_submission_page(group_info, selected_course, student_email, client, 
                 for _, row in submissions_df.iterrows():
                     submissions_ws.append_row(list(row))
                 st.success("Submission deleted. You can now re-upload.")
-                st.experimental_rerun()
+                st.rerun()
     else:
         uploaded = st.file_uploader("📎 Upload Lab Document (PDF/Docx)", type=["pdf", "docx"])
-
         if uploaded and st.button("Submit Lab Report"):
             file_bytes = uploaded.read()
             encoded = base64.b64encode(file_bytes).decode()
@@ -248,4 +235,4 @@ def student_submission_page(group_info, selected_course, student_email, client, 
 
             submissions_ws.append_row(new_row)
             st.success("✅ Submission uploaded successfully!")
-            st.experimental_rerun()
+            st.rerun()
