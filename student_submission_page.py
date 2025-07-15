@@ -46,23 +46,6 @@ def student_submission_page(group_info, selected_course, student_email, client, 
         return ws, df
 
     # ========== Upload to Google Drive ==========
-    # def upload_to_drive(file_bytes, filename, folder_id, creds):
-    #     try:
-    #         service = build("drive", "v3", credentials=creds)
-    #         file_metadata = {"name": filename, "parents": [folder_id]}
-    #         media = MediaIoBaseUpload(BytesIO(file_bytes), mimetype="application/octet-stream")
-    #         uploaded_file = service.files().create(body=file_metadata, media_body=media, fields="id").execute()
-    #         file_id = uploaded_file.get("id")
-
-    #         # Set permissions
-    #         permission = {"type": "anyone", "role": "reader"}
-    #         service.permissions().create(fileId=file_id, body=permission).execute()
-
-    #         return f"https://drive.google.com/file/d/{file_id}/view?usp=sharing"
-    #     except Exception as e:
-    #         st.error(f"Drive upload failed: {e}")
-    #         return None
-
     def upload_to_drive(file_bytes, filename, folder_id, creds):
         try:
             service = build("drive", "v3", credentials=creds)
@@ -133,33 +116,27 @@ def student_submission_page(group_info, selected_course, student_email, client, 
 
     # If not submitted yet
     else:
-        # uploaded = st.file_uploader("📎 Upload Lab Document", type=["pdf", "docx", "ipynb", "py", "xlsx", "csv", "txt"])
-        # if uploaded and st.button("Submit Lab Report"):
-        #     file_bytes = uploaded.read()
-        #     folder_id = st.secrets["google_service_account"]["drive_folder_id"]
-        #     drive_link = upload_to_drive(file_bytes, uploaded.name, folder_id, creds)
         uploaded = st.file_uploader("📎 Upload Lab Document", type=["pdf", "docx", "ipynb", "py", "xlsx", "csv", "txt"])
-
+    
         if uploaded:
             file_bytes = uploaded.read()  # Store immediately to avoid loss
             st.session_state['uploaded_file_bytes'] = file_bytes
             st.session_state['uploaded_file_name'] = uploaded.name
-        
+    
         if 'uploaded_file_bytes' in st.session_state and st.button("Submit Lab Report"):
             file_bytes = st.session_state['uploaded_file_bytes']
             filename = st.session_state['uploaded_file_name']
             folder_id = st.secrets["google_service_account"]["drive_folder_id"]
             drive_link = upload_to_drive(file_bytes, filename, folder_id, creds)
-
-
+    
             if not drive_link:
                 st.error("❌ File upload failed.")
                 return
-
+    
             new_row = [
                 datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 group_name, selected_course, selected_lab,
-                student_email, uploaded.name, drive_link, "No", ""
+                student_email, filename, drive_link, "No", ""
             ]
             submissions_ws.append_row(new_row)
             st.success("✅ Submission uploaded and saved!")
