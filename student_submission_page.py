@@ -102,18 +102,6 @@ def student_submission_page(group_info, selected_course, student_email, client, 
         st.markdown(f"📎 **File:** [{file_name}]({file_link})")
         st.markdown(f"👤 **Submitted by:** {submitted_by}")
 
-        if graded_status == "yes":
-            st.success(f"📝 This submission has been graded: **{grade}**")
-        else:
-            if st.button("🗑️ Delete Submission and Re-upload"):
-                submissions_df = submissions_df.drop(existing.index)
-                submissions_ws.clear()
-                submissions_ws.append_row(submissions_df.columns.tolist())
-                for _, row in submissions_df.iterrows():
-                    submissions_ws.append_row(list(row))
-                st.success("Deleted. You can now re-upload.")
-                st.rerun()
-
         with st.expander("🔍 Preview Submission", expanded=True):
             # ========== File Preview ==========
             file_ext = file_name.lower().split('.')[-1]
@@ -135,6 +123,19 @@ def student_submission_page(group_info, selected_course, student_email, client, 
     
             else:
                 st.info("⚠️ Preview not supported for this file type.")
+
+        if graded_status == "yes":
+            st.success(f"📝 This submission has been graded: **{grade}**")
+        else:
+            if st.button("🗑️ Delete Submission and Re-upload"):
+                submissions_df = submissions_df.drop(existing.index)
+                submissions_ws.clear()
+                submissions_ws.append_row(submissions_df.columns.tolist())
+                for _, row in submissions_df.iterrows():
+                    submissions_ws.append_row(list(row))
+                st.success("Deleted. You can now re-upload.")
+                st.rerun()
+
 
     # If not submitted yet
     else:
