@@ -194,17 +194,54 @@ def student_submission_page(group_info, selected_course, student_email, client, 
             ])
         return ws, df
 
+    # def upload_to_drive(file_bytes, filename, folder_id, creds):
+    #     try:
+    #         service = build("drive", "v3", credentials=creds)
+    
+    #         file_metadata = {
+    #             "name": filename,
+    #             "parents": [folder_id]
+    #         }
+    #         media = MediaIoBaseUpload(BytesIO(file_bytes), mimetype="application/octet-stream")
+    
+    #         # Upload the file
+    #         uploaded_file = service.files().create(
+    #             body=file_metadata,
+    #             media_body=media,
+    #             fields="id"
+    #         ).execute()
+    
+    #         file_id = uploaded_file.get("id")
+    
+    #         # Set permission to anyone with the link
+    #         permission = {
+    #             "type": "anyone",
+    #             "role": "reader"
+    #         }
+    #         service.permissions().create(
+    #             fileId=file_id,
+    #             body=permission
+    #         ).execute()
+    
+    #         return f"https://drive.google.com/file/d/{file_id}/view?usp=sharing"
+    
+    #     except Exception as e:
+    #         st.error(f"Drive upload failed: {e}")
+    #         return None
     def upload_to_drive(file_bytes, filename, folder_id, creds):
         try:
+            if not folder_id:
+                raise ValueError("Drive folder ID is not provided!")
+    
             service = build("drive", "v3", credentials=creds)
     
             file_metadata = {
                 "name": filename,
                 "parents": [folder_id]
             }
+    
             media = MediaIoBaseUpload(BytesIO(file_bytes), mimetype="application/octet-stream")
     
-            # Upload the file
             uploaded_file = service.files().create(
                 body=file_metadata,
                 media_body=media,
@@ -213,21 +250,18 @@ def student_submission_page(group_info, selected_course, student_email, client, 
     
             file_id = uploaded_file.get("id")
     
-            # Set permission to anyone with the link
-            permission = {
-                "type": "anyone",
-                "role": "reader"
-            }
+            # Make file public
             service.permissions().create(
                 fileId=file_id,
-                body=permission
+                body={"type": "anyone", "role": "reader"},
             ).execute()
     
             return f"https://drive.google.com/file/d/{file_id}/view?usp=sharing"
     
         except Exception as e:
-            st.error(f"Drive upload failed: {e}")
+            st.error(f"🚫 Drive upload failed:\n\n**{e}**\n\n🔍 Check that your folder ID is correct and that your service account has access.")
             return None
+
         
     submissions_ws, submissions_df = load_submissions_df(client, sheet_id)
 
