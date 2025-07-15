@@ -46,21 +46,55 @@ def student_submission_page(group_info, selected_course, student_email, client, 
         return ws, df
 
     # ========== Upload to Google Drive ==========
+    # def upload_to_drive(file_bytes, filename, folder_id, creds):
+    #     try:
+    #         service = build("drive", "v3", credentials=creds)
+    #         file_metadata = {"name": filename, "parents": [folder_id]}
+    #         media = MediaIoBaseUpload(BytesIO(file_bytes), mimetype="application/octet-stream")
+    #         uploaded_file = service.files().create(body=file_metadata, media_body=media, fields="id").execute()
+    #         file_id = uploaded_file.get("id")
+
+    #         # Set permissions
+    #         permission = {"type": "anyone", "role": "reader"}
+    #         service.permissions().create(fileId=file_id, body=permission).execute()
+
+    #         return f"https://drive.google.com/file/d/{file_id}/view?usp=sharing"
+    #     except Exception as e:
+    #         st.error(f"Drive upload failed: {e}")
+    #         return None
+
     def upload_to_drive(file_bytes, filename, folder_id, creds):
         try:
             service = build("drive", "v3", credentials=creds)
-            file_metadata = {"name": filename, "parents": [folder_id]}
+    
+            file_metadata = {
+                "name": filename,
+                "parents": [folder_id]
+            }
+    
             media = MediaIoBaseUpload(BytesIO(file_bytes), mimetype="application/octet-stream")
-            uploaded_file = service.files().create(body=file_metadata, media_body=media, fields="id").execute()
+    
+            uploaded_file = service.files().create(
+                body=file_metadata,
+                media_body=media,
+                fields="id",
+                supportsAllDrives=True  # ✅ Allow file creation in Shared Drives
+            ).execute()
+    
             file_id = uploaded_file.get("id")
-
-            # Set permissions
+    
+            # Make the file public
             permission = {"type": "anyone", "role": "reader"}
-            service.permissions().create(fileId=file_id, body=permission).execute()
-
+            service.permissions().create(
+                fileId=file_id,
+                body=permission,
+                supportsAllDrives=True  # ✅ Required for Shared Drives
+            ).execute()
+    
             return f"https://drive.google.com/file/d/{file_id}/view?usp=sharing"
+    
         except Exception as e:
-            st.error(f"Drive upload failed: {e}")
+            st.error(f"🚫 Drive upload failed:\n\n**{e}**\n\n📌 Check folder ID, sharing settings, and permission scopes.")
             return None
 
     # Load submission data
