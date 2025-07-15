@@ -228,28 +228,6 @@ def student_submission_page(group_info, selected_course, student_email, client, 
         except Exception as e:
             st.error(f"Drive upload failed: {e}")
             return None
-    # def upload_to_drive(file_bytes, filename, folder_id, creds):
-    #     try:
-    #         service = build("drive", "v3", credentials=creds)
-    
-    #         file_metadata = {
-    #             "name": filename,
-    #             "parents": [folder_id]
-    #         }
-    #         media = MediaIoBaseUpload(BytesIO(file_bytes), mimetype="application/octet-stream")
-    
-    #         uploaded_file = service.files().create(
-    #             body=file_metadata,
-    #             media_body=media,
-    #             fields="id"
-    #         ).execute()
-    
-    #         file_id = uploaded_file.get("id")
-    #         return f"https://drive.google.com/file/d/{file_id}/view?usp=sharing"
-    
-    #     except Exception as e:
-    #         st.error(f"Drive upload failed: {e}")
-    #         return None
         
     submissions_ws, submissions_df = load_submissions_df(client, sheet_id)
 
@@ -266,9 +244,7 @@ def student_submission_page(group_info, selected_course, student_email, client, 
         st.success(f"✅ Submission already made for {selected_lab}.")
         st.write(f"**Submitted by:** {existing['submitted_by'].iloc[0]}")
         st.write(f"**Filename:** {existing['file_name'].iloc[0]}")
-
-        # file_data = base64.b64decode(existing['file_data'].iloc[0].encode())
-        # st.download_button("📥 Download Submitted File", file_data, file_name=existing['file_name'].iloc[0])
+        
         file_link = existing['file_link'].iloc[0]
         file_name = existing['file_name'].iloc[0]
         file_extension = file_name.lower().split('.')[-1]
@@ -317,26 +293,12 @@ def student_submission_page(group_info, selected_course, student_email, client, 
                 st.rerun()
     else:
         uploaded = st.file_uploader("📎 Upload Lab Document (PDF/Docx)", type=["pdf", "docx", "ipynb", "py", "xlsx", "csv", "txt"])
-        # if uploaded and st.button("Submit Lab Report"):
-        #     file_bytes = uploaded.read()
-        #     encoded = base64.b64encode(file_bytes).decode()
-        #     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-        #     new_row = [
-        #         timestamp, group_name, selected_course, selected_lab,
-        #         student_email, uploaded.name, encoded, "No", ""
-        #     ]
-
-        #     submissions_ws.append_row(new_row)
-        #     st.success("✅ Submission uploaded successfully!")
-        #     st.rerun()
         if uploaded and st.button("Submit Lab Report"):
             file_bytes = uploaded.read()
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
             # Upload to Drive
             folder_id = st.secrets["google_service_account"]["drive_folder_id"]
-            # drive_link = upload_to_drive(file_bytes, uploaded.name, folder_id, client.auth.credentials)
             drive_link = upload_to_drive(file_bytes, uploaded.name, folder_id, creds)
 
         
