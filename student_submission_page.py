@@ -114,6 +114,28 @@ def student_submission_page(group_info, selected_course, student_email, client, 
                 st.success("Deleted. You can now re-upload.")
                 st.rerun()
 
+        with st.expander("🔍 Preview Submission", expanded=True):
+            # ========== File Preview ==========
+            file_ext = file_name.lower().split('.')[-1]
+    
+            if file_ext == "pdf":
+                preview_url = file_link.replace("/view?usp=sharing", "/preview")
+                st.components.v1.iframe(preview_url, height=600)
+    
+            elif file_ext in ["doc", "docx", "ppt", "pptx", "xls", "xlsx"]:
+                # Use Google Docs Viewer
+                st.components.v1.iframe(f"https://docs.google.com/gview?url={file_link}&embedded=true", height=600)
+    
+            elif file_ext == "ipynb":
+                from urllib.parse import quote
+                st.markdown(f"[📘 View Notebook via nbviewer](https://nbviewer.org/url/{quote(file_link, safe='')})")
+    
+            elif file_ext in ["png", "jpg", "jpeg", "gif"]:
+                st.image(file_link, caption=file_name, use_column_width=True)
+    
+            else:
+                st.info("⚠️ Preview not supported for this file type.")
+
     # If not submitted yet
     else:
         uploaded = st.file_uploader("📎 Upload Lab Document", type=["pdf", "docx", "ipynb", "py", "xlsx", "csv", "txt"])
