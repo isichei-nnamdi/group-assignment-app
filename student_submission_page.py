@@ -357,7 +357,6 @@ from datetime import datetime
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 from io import BytesIO
-from urllib.parse import quote
 
 
 def student_submission_page(group_info, selected_course, student_email, client, sheet_id, creds):
@@ -438,20 +437,6 @@ def student_submission_page(group_info, selected_course, student_email, client, 
 
         st.markdown(f"📎 **File:** [{file_name}]({file_link})")
         st.markdown(f"👤 **Submitted by:** {submitted_by}")
-
-        # Preview
-        file_ext = file_name.lower().split('.')[-1]
-        if file_ext == "pdf":
-            preview_url = file_link.replace("/view?usp=sharing", "/preview")
-            st.components.v1.iframe(preview_url, height=600)
-        elif file_ext in ["doc", "docx", "ppt", "pptx", "xls", "xlsx"]:
-            st.components.v1.iframe(f"https://docs.google.com/gview?url={file_link}&embedded=true", height=600)
-        elif file_ext == "ipynb":
-            st.markdown(f"[📘 View Notebook via nbviewer](https://nbviewer.org/url/{quote(file_link, safe='')})")
-        elif file_ext in ["png", "jpg", "jpeg", "gif"]:
-            st.image(file_link, caption=file_name, use_column_width=True)
-        else:
-            st.info("⚠️ Preview not supported for this file type.")
 
         if graded_status == "yes":
             st.success(f"📝 This submission has been graded: **{grade}**")
