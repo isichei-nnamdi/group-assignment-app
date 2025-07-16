@@ -675,19 +675,40 @@ elif st.session_state.user_role == "admin":
             # selected_lab = st.selectbox("Select Lab to Grade", lab_options, key="grade_lab")
 
             # Load Labs sheet for course-lab relationship
+            # try:
+            #     labs_ws = client.open_by_key(sheet_id).worksheet("Labs")
+            #     labs_data = labs_ws.get_all_values()
+            
+            #     labs_df = pd.DataFrame()  # define before conditional
+            
+            #     if len(labs_data) > 1:
+            #         labs_df = pd.DataFrame(labs_data[1:], columns=labs_data[0])
+            #         labs_df["Course"] = labs_df["Course"].str.strip()
+            #         labs_df["Lab Name"] = labs_df["Lab Name"].str.strip()
+            #         course_options = sorted(labs_df["Course"].dropna().unique())
+            #     else:
+            #         course_options = []
+            # Load Labs sheet for course-lab relationship
             try:
                 labs_ws = client.open_by_key(sheet_id).worksheet("Labs")
-                labs_data = labs_ws.get_all_values()
+            except Exception:
+                # If the "Labs" sheet doesn't exist, create it
+                spreadsheet = client.open_by_key(sheet_id)
+                labs_ws = spreadsheet.add_worksheet(title="Labs", rows="100", cols="3")
+                labs_ws.append_row(["Lab Name", "Course"])  # Add required headers
             
-                labs_df = pd.DataFrame()  # define before conditional
-            
-                if len(labs_data) > 1:
-                    labs_df = pd.DataFrame(labs_data[1:], columns=labs_data[0])
-                    labs_df["Course"] = labs_df["Course"].str.strip()
-                    labs_df["Lab Name"] = labs_df["Lab Name"].str.strip()
-                    course_options = sorted(labs_df["Course"].dropna().unique())
-                else:
-                    course_options = []
+            # Now try to get the data
+            labs_data = labs_ws.get_all_values()
+            if len(labs_data) > 1:
+                labs_df = pd.DataFrame(labs_data[1:], columns=labs_data[0])
+                labs_df["Course"] = labs_df["Course"].str.strip()
+                labs_df["Lab Name"] = labs_df["Lab Name"].str.strip()
+                course_options = sorted(labs_df["Course"].dropna().unique())
+            else:
+                labs_df = pd.DataFrame(columns=["Lab Name", "Course"])
+                course_options = []
+                st.warning("⚠️ No lab records found yet in the Labs sheet.")
+
             
             except Exception as e:
                 st.error(f"❌ Unable to load Labs sheet: {e}")
