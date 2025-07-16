@@ -16,15 +16,19 @@ def student_submission_page(group_info, selected_course, student_email, client, 
 
     # ========== Load Labs ==========
     @st.cache_data
-    def load_lab_list(_client, _sheet_id):
+    def load_lab_list(_client, _sheet_id, selected_course):
         try:
             ws = _client.open_by_key(_sheet_id).worksheet("Labs")
-            return sorted(pd.Series(ws.col_values(1)).dropna().unique())
+            data = ws.get_all_values()
+            df = pd.DataFrame(data[1:], columns=data[0])  # Skip header row
+            filtered_labs = df[df['Course'].str.lower() == selected_course.lower()]['Lab Name'].dropna().unique()
+            return sorted(filtered_labs)
         except Exception as e:
             st.error(f"Unable to load lab list: {e}")
             return []
 
-    lab_list = load_lab_list(client, sheet_id)
+
+    lab_list = load_lab_list(client, sheet_id, selected_course)
     if not lab_list:
         st.warning("No labs found for this course.")
         return
