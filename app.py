@@ -603,20 +603,44 @@ elif st.session_state.user_role == "admin":
         with admin_tabs[4]:
             st.markdown("### 📝 Grade Lab Submissions")
 
-           # Load submission records
+           # # Load submission records
+           #  try:
+           #      submissions_ws = client.open_by_key(sheet_id).worksheet("Submissions")
+           #      submissions_data = submissions_ws.get_all_values()
+           #      if len(submissions_data) > 1:
+           #          submissions_df = pd.DataFrame(submissions_data[1:], columns=submissions_data[0])
+           #      else:
+           #          submissions_df = pd.DataFrame(columns=[
+           #              "timestamp", "group_name", "course", "lab", "submitted_by",
+           #              "file_name", "file_link", "graded", "grade"
+           #          ])
+           #  except Exception as e:
+           #      st.error(f"❌ Unable to load Submissions sheet: {e}")
+           #      st.stop()
+            # Load submission records
             try:
                 submissions_ws = client.open_by_key(sheet_id).worksheet("Submissions")
-                submissions_data = submissions_ws.get_all_values()
-                if len(submissions_data) > 1:
-                    submissions_df = pd.DataFrame(submissions_data[1:], columns=submissions_data[0])
-                else:
-                    submissions_df = pd.DataFrame(columns=[
-                        "timestamp", "group_name", "course", "lab", "submitted_by",
-                        "file_name", "file_link", "graded", "grade"
-                    ])
-            except Exception as e:
-                st.error(f"❌ Unable to load Submissions sheet: {e}")
-                st.stop()
+            except Exception:
+                # If the "Submissions" sheet doesn't exist, create it
+                spreadsheet = client.open_by_key(sheet_id)
+                submissions_ws = spreadsheet.add_worksheet(title="Submissions", rows="1000", cols="10")
+                submissions_ws.append_row([
+                    "timestamp", "group_name", "course", "lab", 
+                    "submitted_by", "file_name", "file_link", 
+                    "graded", "grade"
+                ])
+            
+            # Now fetch the records
+            records = submissions_ws.get_all_values()
+            if len(records) > 1:
+                submissions_df = pd.DataFrame(records[1:], columns=records[0])
+            else:
+                submissions_df = pd.DataFrame(columns=[
+                    "timestamp", "group_name", "course", "lab", 
+                    "submitted_by", "file_name", "file_link", 
+                    "graded", "grade"
+                ])
+
             
             # # Load Labs sheet for course-lab relationship
             # try:
