@@ -779,15 +779,31 @@ elif st.session_state.user_role == "admin":
                 labs_ws = spreadsheet.add_worksheet(title="Labs", rows="100", cols="3")
                 labs_ws.append_row(["Lab Name", "Course"])
         
+            # labs_data = labs_ws.get_all_values()
+            # if len(labs_data) > 1:
+            #     labs_df = pd.DataFrame(labs_data[1:], columns=labs_data[0])
+            #     labs_df["Course"] = labs_df["Course"].str.strip()
+            #     labs_df["Lab Name"] = labs_df["Lab Name"].str.strip()
+            #     course_options = sorted(labs_df["Course"].dropna().unique())
+            # else:
+            #     labs_df = pd.DataFrame(columns=["Lab Name", "Course"])
+            #     course_options = []
+            #     st.warning("⚠️ No lab records found in the Labs sheet.")
+            #     st.stop()
+
             labs_data = labs_ws.get_all_values()
             if len(labs_data) > 1:
-                labs_df = pd.DataFrame(labs_data[1:], columns=labs_data[0])
-                labs_df["Course"] = labs_df["Course"].str.strip()
-                labs_df["Lab Name"] = labs_df["Lab Name"].str.strip()
-                course_options = sorted(labs_df["Course"].dropna().unique())
+                header = [h.strip() for h in labs_data[0]]  # Normalize column headers
+                labs_df = pd.DataFrame(labs_data[1:], columns=header)
+            
+                if "Course" in labs_df.columns and "Lab Name" in labs_df.columns:
+                    labs_df["Course"] = labs_df["Course"].str.strip()
+                    labs_df["Lab Name"] = labs_df["Lab Name"].str.strip()
+                    course_options = sorted(labs_df["Course"].dropna().unique())
+                else:
+                    st.error("❌ Labs sheet must have 'Lab Name' and 'Course' as headers.")
+                    st.stop()
             else:
-                labs_df = pd.DataFrame(columns=["Lab Name", "Course"])
-                course_options = []
                 st.warning("⚠️ No lab records found in the Labs sheet.")
                 st.stop()
         
