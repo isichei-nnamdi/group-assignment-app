@@ -610,7 +610,7 @@ elif st.session_state.user_role == "admin":
                 submissions_df = pd.DataFrame(records[1:], columns=records[0])
             except:
                 st.error("❌ Unable to load Submissions sheet.")
-                return
+                # return
 
             # Load Labs sheet for course-lab relationship
             try:
@@ -620,7 +620,7 @@ elif st.session_state.user_role == "admin":
                 course_options = sorted(labs_df["Course"].dropna().unique())
             except:
                 st.error("❌ Unable to load Labs sheet.")
-                return
+                # return
 
             selected_course = st.selectbox("Select Course", course_options, key="grade_course")
 
