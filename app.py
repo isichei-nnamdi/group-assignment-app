@@ -688,6 +688,10 @@ elif st.session_state.user_role == "admin":
             #         course_options = sorted(labs_df["Course"].dropna().unique())
             #     else:
             #         course_options = []
+            # except Exception as e:
+            #     st.error(f"❌ Unable to load Labs sheet: {e}")
+            #     st.stop()
+            
             # Load Labs sheet for course-lab relationship
             try:
                 labs_ws = client.open_by_key(sheet_id).worksheet("Labs")
@@ -709,10 +713,6 @@ elif st.session_state.user_role == "admin":
                 course_options = []
                 st.warning("⚠️ No lab records found yet in the Labs sheet.")
 
-            
-            except Exception as e:
-                st.error(f"❌ Unable to load Labs sheet: {e}")
-                st.stop()
             
             if labs_df.empty or not course_options:
                 st.warning("No courses found in Labs sheet.")
