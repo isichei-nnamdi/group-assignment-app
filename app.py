@@ -603,30 +603,51 @@ elif st.session_state.user_role == "admin":
         with admin_tabs[4]:
             st.markdown("### 📝 Grade Lab Submissions")
 
-            # Load submission records
+           # Load submission records
             try:
                 submissions_ws = client.open_by_key(sheet_id).worksheet("Submissions")
-                records = submissions_ws.get_all_values()
-                submissions_df = pd.DataFrame(records[1:], columns=records[0])
-            except:
-                st.error("❌ Unable to load Submissions sheet.")
-                # return
-
+                submissions_data = submissions_ws.get_all_values()
+                if len(submissions_data) > 1:
+                    submissions_df = pd.DataFrame(submissions_data[1:], columns=submissions_data[0])
+                else:
+                    submissions_df = pd.DataFrame(columns=[
+                        "timestamp", "group_name", "course", "lab", "submitted_by",
+                        "file_name", "file_link", "graded", "grade"
+                    ])
+            except Exception as e:
+                st.error(f"❌ Unable to load Submissions sheet: {e}")
+                st.stop()
+            
             # Load Labs sheet for course-lab relationship
             try:
                 labs_ws = client.open_by_key(sheet_id).worksheet("Labs")
                 labs_data = labs_ws.get_all_values()
-                labs_df = pd.DataFrame(labs_data[1:], columns=labs_data[0])
-                course_options = sorted(labs_df["Course"].dropna().unique())
-            except:
-                st.error("❌ Unable to load Labs sheet.")
-                # return
-
+                if len(labs_data) > 1:
+                    labs_df = pd.DataFrame(labs_data[1:], columns=labs_data[0])
+                    labs_df["Course"] = labs_df["Course"].str.strip()
+                    labs_df["Lab Name"] = labs_df["Lab Name"].str.strip()
+                    course_options = sorted(labs_df["Course"].dropna().unique())
+                else:
+                    labs_df = pd.DataFrame(columns=["Course", "Lab Name"])
+                    course_options = []
+            except Exception as e:
+                st.error(f"❌ Unable to load Labs sheet: {e}")
+                st.stop()
+            
+            if not course_options:
+                st.warning("No courses found in Labs sheet.")
+                st.stop()
+            
+            # Select course and filter labs
             selected_course = st.selectbox("Select Course", course_options, key="grade_course")
-
-            filtered_labs = labs_df[labs_df["Course"].str.lower() == selected_course.lower()]
-            lab_options = sorted(filtered_labs["Lab Name"].dropna().unique())
-
+            
+            filtered_labs_df = labs_df[labs_df["Course"].str.lower() == selected_course.lower()]
+            lab_options = sorted(filtered_labs_df["Lab Name"].dropna().unique())
+            
+            if not lab_options:
+                st.warning("No labs found for selected course.")
+                st.stop()
+            
             selected_lab = st.selectbox("Select Lab to Grade", lab_options, key="grade_lab")
 
             # Filter submissions for course & lab
