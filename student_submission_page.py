@@ -111,9 +111,18 @@ def student_submission_page(group_info, selected_course, student_email, client, 
                 preview_url = file_link.replace("/view?usp=sharing", "/preview")
                 st.components.v1.iframe(preview_url, height=600)
     
+            # elif file_ext in ["doc", "docx", "ppt", "pptx", "xls", "xlsx"]:
+            #     # Use Google Docs Viewer
+            #     st.components.v1.iframe(f"https://docs.google.com/gview?url={file_link}&embedded=true", height=600)
             elif file_ext in ["doc", "docx", "ppt", "pptx", "xls", "xlsx"]:
-                # Use Google Docs Viewer
-                st.components.v1.iframe(f"https://docs.google.com/gview?url={file_link}&embedded=true", height=600)
+                try:
+                    # Extract the file ID from the Drive link
+                    file_id = file_link.split("/d/")[1].split("/")[0]
+                    preview_url = f"https://drive.google.com/file/d/{file_id}/preview"
+                    st.components.v1.iframe(preview_url, height=600)
+                except Exception as e:
+                    st.warning(f"⚠️ Unable to preview the document: {e}")
+
     
             elif file_ext == "ipynb":
                 # from urllib.parse import quote
