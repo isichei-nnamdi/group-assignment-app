@@ -118,33 +118,31 @@ def student_submission_page(group_info, selected_course, student_email, client, 
                 # from urllib.parse import quote
                 # st.markdown(f"[📘 View Notebook via nbviewer](https://nbviewer.org/url/{quote(file_link, safe='')})")
                 import json
-
-                elif file_ext == "ipynb":
-                    try:
-                        import requests
-                
-                        # Extract the raw notebook JSON from Google Drive
-                        response = requests.get(file_link.replace("/view?usp=sharing", "/export?format=txt"))
-                        if response.status_code == 200:
-                            notebook_json = json.loads(response.text)
-                
-                            st.markdown("### 📘 Notebook Preview")
-                            for cell in notebook_json.get("cells", []):
-                                if cell["cell_type"] == "markdown":
-                                    st.markdown("".join(cell["source"]), unsafe_allow_html=True)
-                                elif cell["cell_type"] == "code":
-                                    st.code("".join(cell["source"]), language="python")
-                                    if "outputs" in cell:
-                                        for output in cell["outputs"]:
-                                            if output.get("output_type") == "stream":
-                                                st.text("".join(output.get("text", "")))
-                                            elif output.get("output_type") == "execute_result":
-                                                st.json(output.get("data", {}).get("text/plain", ""))
-                        else:
-                            st.warning("⚠️ Unable to fetch notebook content from Google Drive.")
-                
-                    except Exception as e:
-                        st.error(f"Notebook preview failed: {e}")
+                try:
+                    import requests
+            
+                    # Extract the raw notebook JSON from Google Drive
+                    response = requests.get(file_link.replace("/view?usp=sharing", "/export?format=txt"))
+                    if response.status_code == 200:
+                        notebook_json = json.loads(response.text)
+            
+                        st.markdown("### 📘 Notebook Preview")
+                        for cell in notebook_json.get("cells", []):
+                            if cell["cell_type"] == "markdown":
+                                st.markdown("".join(cell["source"]), unsafe_allow_html=True)
+                            elif cell["cell_type"] == "code":
+                                st.code("".join(cell["source"]), language="python")
+                                if "outputs" in cell:
+                                    for output in cell["outputs"]:
+                                        if output.get("output_type") == "stream":
+                                            st.text("".join(output.get("text", "")))
+                                        elif output.get("output_type") == "execute_result":
+                                            st.json(output.get("data", {}).get("text/plain", ""))
+                    else:
+                        st.warning("⚠️ Unable to fetch notebook content from Google Drive.")
+            
+                except Exception as e:
+                    st.error(f"Notebook preview failed: {e}")
 
     
             elif file_ext in ["png", "jpg", "jpeg", "gif"]:
