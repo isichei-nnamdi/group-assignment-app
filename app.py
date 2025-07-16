@@ -600,28 +600,159 @@ elif st.session_state.user_role == "admin":
                 #                 st.success("✅ Selected students have been added to the group.")
                 #                 st.rerun()
 
+        # with admin_tabs[4]:
+        #     st.markdown("### 📝 Grade Lab Submissions")
+
+        #    # Load submission records
+        #     try:
+        #         submissions_ws = client.open_by_key(sheet_id).worksheet("Submissions")
+        #     except Exception:
+        #         # If the "Submissions" sheet doesn't exist, create it
+        #         spreadsheet = client.open_by_key(sheet_id)
+        #         submissions_ws = spreadsheet.add_worksheet(title="Submissions", rows="1000", cols="10")
+        #         submissions_ws.append_row([
+        #             "timestamp", "group_name", "course", "lab", 
+        #             "submitted_by", "file_name", "file_link", 
+        #             "graded", "grade"
+        #         ])
+            
+        #     # Now fetch the records
+        #     records = submissions_ws.get_all_values()
+        #     if len(records) > 1:
+        #         submissions_df = pd.DataFrame(records[1:], columns=records[0])
+        #     else:
+        #         submissions_df = pd.DataFrame(columns=[
+        #             "timestamp", "group_name", "course", "lab", 
+        #             "submitted_by", "file_name", "file_link", 
+        #             "graded", "grade"
+        #         ])
+            
+        #     # Load Labs sheet for course-lab relationship
+        #     try:
+        #         labs_ws = client.open_by_key(sheet_id).worksheet("Labs")
+        #     except Exception:
+        #         # If the "Labs" sheet doesn't exist, create it
+        #         spreadsheet = client.open_by_key(sheet_id)
+        #         labs_ws = spreadsheet.add_worksheet(title="Labs", rows="100", cols="3")
+        #         labs_ws.append_row(["Lab Name", "Course"])  # Add required headers
+            
+        #     # Now try to get the data
+        #     labs_data = labs_ws.get_all_values()
+        #     if len(labs_data) > 1:
+        #         labs_df = pd.DataFrame(labs_data[1:], columns=labs_data[0])
+        #         labs_df["Course"] = labs_df["Course"].str.strip()
+        #         labs_df["Lab Name"] = labs_df["Lab Name"].str.strip()
+        #         course_options = sorted(labs_df["Course"].dropna().unique())
+        #     else:
+        #         labs_df = pd.DataFrame(columns=["Lab Name", "Course"])
+        #         course_options = []
+        #         st.warning("⚠️ No lab records found yet in the Labs sheet.")
+
+            
+        #     if labs_df.empty or not course_options:
+        #         st.warning("No courses found in Labs sheet.")
+        #         st.stop()
+            
+        #     # Select course and filter labs
+        #     selected_course = st.selectbox("Select Course", course_options, key="grade_course")
+            
+        #     filtered_labs_df = labs_df[labs_df["Course"].str.lower() == selected_course.lower()]
+        #     lab_options = sorted(filtered_labs_df["Lab Name"].dropna().unique())
+            
+        #     if not lab_options:
+        #         st.warning("No labs found for selected course.")
+        #         st.stop()
+            
+        #     selected_lab = st.selectbox("Select Lab to Grade", lab_options, key="grade_lab")
+
+
+        #     # Filter submissions for course & lab
+        #     filtered_submissions = submissions_df[
+        #         (submissions_df["course"].str.lower() == selected_course.lower()) &
+        #         (submissions_df["lab"].str.lower() == selected_lab.lower())
+        #     ]
+
+        #     if filtered_submissions.empty:
+        #         st.info("No submissions found for this course and lab.")
+        #     else:
+        #         for idx, row in filtered_submissions.iterrows():
+        #             st.markdown("---")
+        #             st.markdown(f"### Group: **{row['group_name']}**")
+        #             st.markdown(f"👤 Submitted by: {row['submitted_by']}")
+        #             st.markdown(f"📎 File: [{row['file_name']}]({row['file_link']})")
+
+        #             # Preview logic based on file extension
+        #             file_link = row['file_link']
+        #             file_ext = row['file_name'].lower().split('.')[-1]
+
+        #             if file_ext == "pdf":
+        #                 preview_url = file_link.replace("/view?usp=sharing", "/preview")
+        #                 st.components.v1.iframe(preview_url, height=600)
+        #             elif file_ext in ["doc", "docx", "ppt", "pptx", "xls", "xlsx"]:
+        #                 st.components.v1.iframe(f"https://docs.google.com/gview?url={file_link}&embedded=true", height=600)
+        #             elif file_ext == "ipynb":
+        #                 try:
+        #                     import requests
+        #                     response = requests.get(file_link)
+        #                     notebook_content = response.json()
+        #                     st.json(notebook_content)  # Basic display, can be enhanced
+        #                 except:
+        #                     st.error("Unable to fetch notebook content from Google Drive.")
+        #             elif file_ext == "py":
+        #                 try:
+        #                     import requests
+        #                     content = requests.get(file_link).text
+        #                     st.code(content, language="python")
+        #                 except:
+        #                     st.warning("Unable to preview .py file")
+        #             elif file_ext in ["png", "jpg", "jpeg", "gif"]:
+        #                 st.image(file_link, caption=row['file_name'], use_column_width=True)
+        #             else:
+        #                 st.info("⚠️ No preview available for this file type.")
+
+        #             # Grade input
+        #             score = st.text_input(f"Enter grade for {row['group_name']}", key=f"grade_{idx}")
+        #             if st.button(f"Submit Grade for {row['group_name']}", key=f"btn_grade_{idx}"):
+        #                 try:
+        #                     # Update the original Submissions sheet
+        #                     submissions_ws.update_cell(idx + 2, submissions_df.columns.get_loc("graded") + 1, "Yes")
+        #                     submissions_ws.update_cell(idx + 2, submissions_df.columns.get_loc("grade") + 1, score)
+
+        #                     # Log the graded info in a new sheet
+        #                     sheet_title = f"{selected_course}_{selected_lab}".replace(" ", "_")
+        #                     try:
+        #                         grade_ws = client.open_by_key(sheet_id).worksheet(sheet_title)
+        #                     except:
+        #                         grade_ws = client.open_by_key(sheet_id).add_worksheet(title=sheet_title, rows="1000", cols="10")
+        #                         grade_ws.append_row(["timestamp", "course", "lab", "group_name", "name", "email", "score"])
+
+        #                     group_students = st.session_state.groups_df[
+        #                         st.session_state.groups_df["group_name"] == row['group_name']
+        #                     ]
+        #                     for _, student in group_students.iterrows():
+        #                         grade_ws.append_row([
+        #                             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        #                             selected_course,
+        #                             selected_lab,
+        #                             row['group_name'],
+        #                             student["name"],
+        #                             student["email"],
+        #                             score
+        #                         ])
+
+        #                     st.success(f"✅ Grade saved for group {row['group_name']}.")
+        #                     st.rerun()
+
+        #                 except Exception as e:
+        #                     st.error(f"Error grading submission: {e}")
+
         with admin_tabs[4]:
             st.markdown("### 📝 Grade Lab Submissions")
-
-           # # Load submission records
-           #  try:
-           #      submissions_ws = client.open_by_key(sheet_id).worksheet("Submissions")
-           #      submissions_data = submissions_ws.get_all_values()
-           #      if len(submissions_data) > 1:
-           #          submissions_df = pd.DataFrame(submissions_data[1:], columns=submissions_data[0])
-           #      else:
-           #          submissions_df = pd.DataFrame(columns=[
-           #              "timestamp", "group_name", "course", "lab", "submitted_by",
-           #              "file_name", "file_link", "graded", "grade"
-           #          ])
-           #  except Exception as e:
-           #      st.error(f"❌ Unable to load Submissions sheet: {e}")
-           #      st.stop()
-            # Load submission records
+        
+            # --- Load Submissions Sheet ---
             try:
                 submissions_ws = client.open_by_key(sheet_id).worksheet("Submissions")
-            except Exception:
-                # If the "Submissions" sheet doesn't exist, create it
+            except:
                 spreadsheet = client.open_by_key(sheet_id)
                 submissions_ws = spreadsheet.add_worksheet(title="Submissions", rows="1000", cols="10")
                 submissions_ws.append_row([
@@ -629,8 +760,7 @@ elif st.session_state.user_role == "admin":
                     "submitted_by", "file_name", "file_link", 
                     "graded", "grade"
                 ])
-            
-            # Now fetch the records
+        
             records = submissions_ws.get_all_values()
             if len(records) > 1:
                 submissions_df = pd.DataFrame(records[1:], columns=records[0])
@@ -640,68 +770,15 @@ elif st.session_state.user_role == "admin":
                     "submitted_by", "file_name", "file_link", 
                     "graded", "grade"
                 ])
-
-            
-            # # Load Labs sheet for course-lab relationship
-            # try:
-            #     labs_ws = client.open_by_key(sheet_id).worksheet("Labs")
-            #     labs_data = labs_ws.get_all_values()
-            #     if len(labs_data) > 1:
-            #         labs_df = pd.DataFrame(labs_data[1:], columns=labs_data[0])
-            #         labs_df["Course"] = labs_df["Course"].str.strip()
-            #         labs_df["Lab Name"] = labs_df["Lab Name"].str.strip()
-            #         course_options = sorted(labs_df["Course"].dropna().unique())
-            #     else:
-            #         labs_df = pd.DataFrame(columns=["Course", "Lab Name"])
-            #         course_options = []
-            # except Exception as e:
-            #     st.error(f"❌ Unable to load Labs sheet: {e}")
-            #     st.stop()
-            
-            # if not course_options:
-            #     st.warning("No courses found in Labs sheet.")
-            #     st.stop()
-            
-            # # Select course and filter labs
-            # selected_course = st.selectbox("Select Course", course_options, key="grade_course")
-            
-            # filtered_labs_df = labs_df[labs_df["Course"].str.lower() == selected_course.lower()]
-            # lab_options = sorted(filtered_labs_df["Lab Name"].dropna().unique())
-            
-            # if not lab_options:
-            #     st.warning("No labs found for selected course.")
-            #     st.stop()
-            
-            # selected_lab = st.selectbox("Select Lab to Grade", lab_options, key="grade_lab")
-
-            # Load Labs sheet for course-lab relationship
-            # try:
-            #     labs_ws = client.open_by_key(sheet_id).worksheet("Labs")
-            #     labs_data = labs_ws.get_all_values()
-            
-            #     labs_df = pd.DataFrame()  # define before conditional
-            
-            #     if len(labs_data) > 1:
-            #         labs_df = pd.DataFrame(labs_data[1:], columns=labs_data[0])
-            #         labs_df["Course"] = labs_df["Course"].str.strip()
-            #         labs_df["Lab Name"] = labs_df["Lab Name"].str.strip()
-            #         course_options = sorted(labs_df["Course"].dropna().unique())
-            #     else:
-            #         course_options = []
-            # except Exception as e:
-            #     st.error(f"❌ Unable to load Labs sheet: {e}")
-            #     st.stop()
-            
-            # Load Labs sheet for course-lab relationship
+        
+            # --- Load Labs Sheet ---
             try:
                 labs_ws = client.open_by_key(sheet_id).worksheet("Labs")
-            except Exception:
-                # If the "Labs" sheet doesn't exist, create it
+            except:
                 spreadsheet = client.open_by_key(sheet_id)
                 labs_ws = spreadsheet.add_worksheet(title="Labs", rows="100", cols="3")
-                labs_ws.append_row(["Lab Name", "Course"])  # Add required headers
-            
-            # Now try to get the data
+                labs_ws.append_row(["Lab Name", "Course"])
+        
             labs_data = labs_ws.get_all_values()
             if len(labs_data) > 1:
                 labs_df = pd.DataFrame(labs_data[1:], columns=labs_data[0])
@@ -711,32 +788,27 @@ elif st.session_state.user_role == "admin":
             else:
                 labs_df = pd.DataFrame(columns=["Lab Name", "Course"])
                 course_options = []
-                st.warning("⚠️ No lab records found yet in the Labs sheet.")
-
-            
-            if labs_df.empty or not course_options:
-                st.warning("No courses found in Labs sheet.")
+                st.warning("⚠️ No lab records found in the Labs sheet.")
                 st.stop()
-            
-            # Select course and filter labs
+        
+            # --- Course & Lab Selection ---
             selected_course = st.selectbox("Select Course", course_options, key="grade_course")
-            
-            filtered_labs_df = labs_df[labs_df["Course"].str.lower() == selected_course.lower()]
-            lab_options = sorted(filtered_labs_df["Lab Name"].dropna().unique())
-            
+        
+            lab_options = labs_df[labs_df["Course"].str.lower() == selected_course.lower()]["Lab Name"].dropna().unique()
+            lab_options = sorted(lab_options)
+        
             if not lab_options:
                 st.warning("No labs found for selected course.")
                 st.stop()
-            
+        
             selected_lab = st.selectbox("Select Lab to Grade", lab_options, key="grade_lab")
-
-
-            # Filter submissions for course & lab
+        
+            # --- Filter Submissions ---
             filtered_submissions = submissions_df[
                 (submissions_df["course"].str.lower() == selected_course.lower()) &
                 (submissions_df["lab"].str.lower() == selected_lab.lower())
             ]
-
+        
             if filtered_submissions.empty:
                 st.info("No submissions found for this course and lab.")
             else:
@@ -745,11 +817,11 @@ elif st.session_state.user_role == "admin":
                     st.markdown(f"### Group: **{row['group_name']}**")
                     st.markdown(f"👤 Submitted by: {row['submitted_by']}")
                     st.markdown(f"📎 File: [{row['file_name']}]({row['file_link']})")
-
-                    # Preview logic based on file extension
+        
+                    # === Preview Uploaded File ===
                     file_link = row['file_link']
                     file_ext = row['file_name'].lower().split('.')[-1]
-
+        
                     if file_ext == "pdf":
                         preview_url = file_link.replace("/view?usp=sharing", "/preview")
                         st.components.v1.iframe(preview_url, height=600)
@@ -759,57 +831,60 @@ elif st.session_state.user_role == "admin":
                         try:
                             import requests
                             response = requests.get(file_link)
-                            notebook_content = response.json()
-                            st.json(notebook_content)  # Basic display, can be enhanced
+                            content = response.text
+                            st.text_area("Notebook Preview", content[:3000], height=400)
                         except:
-                            st.error("Unable to fetch notebook content from Google Drive.")
+                            st.error("Unable to preview .ipynb file.")
                     elif file_ext == "py":
                         try:
                             import requests
                             content = requests.get(file_link).text
                             st.code(content, language="python")
                         except:
-                            st.warning("Unable to preview .py file")
+                            st.warning("Unable to preview .py file.")
                     elif file_ext in ["png", "jpg", "jpeg", "gif"]:
                         st.image(file_link, caption=row['file_name'], use_column_width=True)
                     else:
                         st.info("⚠️ No preview available for this file type.")
-
-                    # Grade input
-                    score = st.text_input(f"Enter grade for {row['group_name']}", key=f"grade_{idx}")
-                    if st.button(f"Submit Grade for {row['group_name']}", key=f"btn_grade_{idx}"):
+        
+                    # === Grade Submission ===
+                    score = st.text_input(f"Enter grade for {row['group_name']}", key=f"grade_input_{idx}")
+                    if st.button(f"✅ Submit Grade for {row['group_name']}", key=f"grade_button_{idx}"):
                         try:
-                            # Update the original Submissions sheet
-                            submissions_ws.update_cell(idx + 2, submissions_df.columns.get_loc("graded") + 1, "Yes")
-                            submissions_ws.update_cell(idx + 2, submissions_df.columns.get_loc("grade") + 1, score)
-
-                            # Log the graded info in a new sheet
-                            sheet_title = f"{selected_course}_{selected_lab}".replace(" ", "_")
+                            # Update Submissions sheet
+                            row_index = idx + 2  # Add 2 because DataFrame index starts at 0, and Google Sheets at 1 + header row
+                            submissions_ws.update_cell(row_index, submissions_df.columns.get_loc("graded") + 1, "Yes")
+                            submissions_ws.update_cell(row_index, submissions_df.columns.get_loc("grade") + 1, score)
+        
+                            # Add to grading log sheet
+                            grade_sheet_title = f"{selected_course}_{selected_lab}".replace(" ", "_")
                             try:
-                                grade_ws = client.open_by_key(sheet_id).worksheet(sheet_title)
+                                grade_ws = client.open_by_key(sheet_id).worksheet(grade_sheet_title)
                             except:
-                                grade_ws = client.open_by_key(sheet_id).add_worksheet(title=sheet_title, rows="1000", cols="10")
+                                grade_ws = client.open_by_key(sheet_id).add_worksheet(title=grade_sheet_title, rows="1000", cols="10")
                                 grade_ws.append_row(["timestamp", "course", "lab", "group_name", "name", "email", "score"])
-
+        
                             group_students = st.session_state.groups_df[
-                                st.session_state.groups_df["group_name"] == row['group_name']
+                                st.session_state.groups_df["group_name"] == row["group_name"]
                             ]
+        
                             for _, student in group_students.iterrows():
                                 grade_ws.append_row([
                                     datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                                     selected_course,
                                     selected_lab,
-                                    row['group_name'],
+                                    row["group_name"],
                                     student["name"],
                                     student["email"],
                                     score
                                 ])
-
-                            st.success(f"✅ Grade saved for group {row['group_name']}.")
+        
+                            st.success(f"✅ Grade submitted for group: {row['group_name']}")
                             st.rerun()
-
+        
                         except Exception as e:
-                            st.error(f"Error grading submission: {e}")
+                            st.error(f"❌ Error grading submission: {e}")
+
 else:
     st.error("Unknown user role. Please contact administrator.")
     st.stop()
