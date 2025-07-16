@@ -135,7 +135,7 @@ def student_submission_page(group_info, selected_course, student_email, client, 
                     file_buffer.seek(0)
                     notebook_json = json.load(file_buffer)
             
-                    st.markdown("### 📘 Notebook Preview")
+                    st.markdown("#### 📘 Notebook Preview")
             
                     for cell in notebook_json.get("cells", []):
                         if cell["cell_type"] == "markdown":
