@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import json
 from datetime import datetime
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
@@ -117,32 +118,41 @@ def student_submission_page(group_info, selected_course, student_email, client, 
             elif file_ext == "ipynb":
                 # from urllib.parse import quote
                 # st.markdown(f"[📘 View Notebook via nbviewer](https://nbviewer.org/url/{quote(file_link, safe='')})")
-                import json
                 try:
-                    import requests
+                    # Extract file ID from the drive link
+                    file_id = file_link.split("/d/")[1].split("/")[0]
             
-                    # Extract the raw notebook JSON from Google Drive
-                    response = requests.get(file_link.replace("/view?usp=sharing", "/export?format=txt"))
-                    if response.status_code == 200:
-                        notebook_json = json.loads(response.text)
+                    # Use Drive API to fetch file content
+                    drive_service = build("drive", "v3", credentials=creds)
+                    request = drive_service.files().get_media(fileId=file_id, supportsAllDrives=True)
+                    file_buffer = BytesIO()
+                    downloader = MediaIoBaseDownload(file_buffer, request)
             
-                        st.markdown("### 📘 Notebook Preview")
-                        for cell in notebook_json.get("cells", []):
-                            if cell["cell_type"] == "markdown":
-                                st.markdown("".join(cell["source"]), unsafe_allow_html=True)
-                            elif cell["cell_type"] == "code":
-                                st.code("".join(cell["source"]), language="python")
-                                if "outputs" in cell:
-                                    for output in cell["outputs"]:
-                                        if output.get("output_type") == "stream":
-                                            st.text("".join(output.get("text", "")))
-                                        elif output.get("output_type") == "execute_result":
-                                            st.json(output.get("data", {}).get("text/plain", ""))
-                    else:
-                        st.warning("⚠️ Unable to fetch notebook content from Google Drive.")
+                    done = False
+                    while not done:
+                        _, done = downloader.next_chunk()
             
+                    file_buffer.seek(0)
+                    notebook_json = json.load(file_buffer)
+            
+                    st.markdown("### 📘 Notebook Preview")
+            
+                    for cell in notebook_json.get("cells", []):
+                        if cell["cell_type"] == "markdown":
+                            st.markdown("".join(cell["source"]), unsafe_allow_html=True)
+                        elif cell["cell_type"] == "code":
+                            st.code("".join(cell["source"]), language="python")
+                            if "outputs" in cell:
+                                for output in cell["outputs"]:
+                                    if output.get("output_type") == "stream":
+                                        st.text("".join(output.get("text", "")))
+                                    elif output.get("output_type") == "execute_result":
+                                        text = output.get("data", {}).get("text/plain", "")
+                                        if isinstance(text, list):
+                                            text = "".join(text)
+                                        st.text(text)
                 except Exception as e:
-                    st.error(f"Notebook preview failed: {e}")
+                    st.error(f"⚠️ Notebook preview failed: {e}")
 
     
             elif file_ext in ["png", "jpg", "jpeg", "gif"]:
