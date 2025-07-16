@@ -111,9 +111,6 @@ def student_submission_page(group_info, selected_course, student_email, client, 
                 preview_url = file_link.replace("/view?usp=sharing", "/preview")
                 st.components.v1.iframe(preview_url, height=600)
     
-            # elif file_ext in ["doc", "docx", "ppt", "pptx", "xls", "xlsx"]:
-            #     # Use Google Docs Viewer
-            #     st.components.v1.iframe(f"https://docs.google.com/gview?url={file_link}&embedded=true", height=600)
             elif file_ext in ["doc", "docx", "ppt", "pptx", "xls", "xlsx"]:
                 try:
                     # Extract the file ID from the Drive link
@@ -166,6 +163,26 @@ def student_submission_page(group_info, selected_course, student_email, client, 
     
             elif file_ext in ["png", "jpg", "jpeg", "gif"]:
                 st.image(file_link, caption=file_name, use_column_width=True)
+
+            elif file_ext == "py":
+                import requests
+            
+                try:
+                    # Extract file ID from the Google Drive link
+                    file_id = file_link.split("/d/")[1].split("/")[0]
+                    download_url = f"https://www.googleapis.com/drive/v3/files/{file_id}?alt=media"
+                    headers = {"Authorization": f"Bearer {creds.token}"}
+            
+                    response = requests.get(download_url, headers=headers)
+            
+                    if response.status_code == 200:
+                        code_content = response.text
+                        st.code(code_content, language='python')
+                    else:
+                        st.warning("⚠️ Unable to fetch the Python file content for preview.")
+                except Exception as e:
+                    st.warning(f"⚠️ Error displaying .py file: {e}")
+
     
             else:
                 st.info("⚠️ Preview not supported for this file type.")
