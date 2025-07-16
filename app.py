@@ -795,6 +795,8 @@ elif st.session_state.user_role == "admin":
             if len(labs_data) > 1:
                 header = [h.strip() for h in labs_data[0]]  # Normalize column headers
                 labs_df = pd.DataFrame(labs_data[1:], columns=header)
+
+                st.write(labs_df)
             
                 if "Course" in labs_df.columns and "Lab Name" in labs_df.columns:
                     labs_df["Course"] = labs_df["Course"].str.strip()
