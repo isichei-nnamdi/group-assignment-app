@@ -770,7 +770,8 @@ elif st.session_state.user_role == "admin":
                     "submitted_by", "file_name", "file_link", 
                     "graded", "grade"
                 ])
-        
+
+            st.write(submissions_df)
             # --- Load Labs Sheet ---
             # try:
             #     labs_ws = client.open_by_key(sheet_id).worksheet("Labs")
@@ -797,7 +798,7 @@ elif st.session_state.user_role == "admin":
 
             # Load Labs sheet for course-lab relationship
             try:
-                labs_ws = client.open_by_key(sheet_id).worksheet("Labs")
+                labs_ws = client.open_by_key(sheet_id).worksheet("Submissions") # --------------
                 labs_data = labs_ws.get_all_values()
                 
                 # Show raw labs data for debug
