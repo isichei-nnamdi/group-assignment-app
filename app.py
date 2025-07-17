@@ -10,10 +10,6 @@ from email.mime.multipart import MIMEMultipart
 from google.auth.exceptions import TransportError
 import socket
 import json
-# from grading_page import grading_page
-# from student_submission_page import student_submission_page
-
-
 
 st.set_page_config(
     page_title="CreateGroup",
@@ -38,27 +34,6 @@ try:
     group_log_sheet_id = st.secrets["google_service_account"]["group_log_sheet_id"]
     developer_email = st.secrets["google_service_account"]["developer_email"]
     developer_password = st.secrets["google_service_account"]["developer_password"]
-
-    # ========== Load Groups Sheet into Session State ==========
-    # def load_groups_df():
-    #     try:
-    #         groups_ws = client.open_by_key(student_sheet_id).worksheet("groups")
-    #         group_records = groups_ws.get_all_values()
-    
-    #         if len(group_records) > 1:
-    #             df = pd.DataFrame(group_records[1:], columns=[col.strip() for col in group_records[0]])
-    #             df["group_name"] = df["group_name"].str.strip()
-    #             return df
-    #         else:
-    #             st.warning("⚠️ The Groups sheet is empty.")
-    #             return pd.DataFrame()
-    
-    #     except Exception as e:
-    #         st.error(f"❌ Unable to load Groups sheet: {e}")
-    #         return pd.DataFrame()
-    
-    # if "groups_df" not in st.session_state:
-    #     st.session_state.groups_df = load_groups_df()
 
     # ========== Load Data & Cache ==========
     def load_students_df():
@@ -214,11 +189,6 @@ if st.session_state.user_role == "student":
             else:
                 st.warning("You are grouped, but group info couldn't be found.")
                 st.stop()
-            # if st.button("🚪 Logout Now"):
-            #     for key in ["authenticated", "user_email", "user_role", "current_student"]:
-            #         st.session_state.pop(key, None)
-            #     st.rerun()
-            # st.stop()
 
         # Get all already grouped students
         already_grouped = []
@@ -227,11 +197,6 @@ if st.session_state.user_role == "student":
                 already_grouped.extend([e.strip().lower() for e in row["members"].split(",")])
 
         if current_email in already_grouped:
-            # st.warning("You have already been added to a group for this course and cannot create another.")
-            # if st.button("Logout"):
-            #     st.session_state.clear()
-            #     st.rerun()
-            # st.stop()
             st.success("🎉 You are already in a group for this course.")
     
             # 🔍 Find your group info
@@ -371,13 +336,7 @@ if st.session_state.user_role == "student":
             from student_submission_page import student_submission_page
             student_submission_page(group_info, selected_course, current_email, client, group_log_sheet_id, creds)
             
-            st.stop()  # prevent rerun since we're showing the submission page now
-            # Clear group_df from cache and log out the student
-            # del st.session_state.groups_df
-            # for key in ["authenticated", "user_email", "user_role", "current_student"]:
-            #     st.session_state.pop(key, None)
-            # st.rerun()
-
+            st.stop()
 
 # ========== Admin Panel ==========
 elif st.session_state.user_role == "admin":
@@ -543,7 +502,6 @@ elif st.session_state.user_role == "admin":
                 group_members = filtered_groups[filtered_groups["group_name"] == selected_group]
 
                 st.markdown(f"#### Members of **{selected_group}**")
-                # st.write("Group Members:")
                 st.write(group_members)  # or process as a list if needed
 
 
@@ -762,8 +720,111 @@ elif st.session_state.user_role == "admin":
         #                     st.error(f"Error grading submission: {e}")
 
         with admin_tabs[4]:
-            # grading_page()
-            st.write("Welcome to grading")
+            st.markdown("### 📝 Grade Lab Submissions")
+
+            try:
+                # Load Labs sheet
+                labs_ws = client.open_by_key(group_log_sheet_id).worksheet("Labs")
+                labs_data = labs_ws.get_all_values()
+        
+                if len(labs_data) <= 1:
+                    st.warning("⚠️ No labs found.")
+                else:
+                    labs_df = pd.DataFrame(labs_data[1:], columns=[col.strip() for col in labs_data[0]])
+                    labs_df.columns = [
+                        "Lab Name" if "lab" in c.lower() else "Course" if "course" in c.lower() else c
+                        for c in labs_df.columns
+                    ]
+                    course_options = sorted(labs_df["Course"].dropna().unique())
+                    selected_course = st.selectbox("Select Course", course_options, key="grade_admin_course")
+        
+                    lab_options = sorted(labs_df[labs_df["Course"].str.lower() == selected_course.lower()]["Lab Name"].dropna().unique())
+                    if not lab_options:
+                        st.warning("No labs available for this course.")
+                    else:
+                        selected_lab = st.selectbox("Select Lab", lab_options, key="grade_admin_lab")
+        
+                        # Load Submissions sheet
+                        submissions_ws = client.open_by_key(group_log_sheet_id).worksheet("Submissions")
+                        submissions_data = submissions_ws.get_all_values()
+        
+                        if len(submissions_data) <= 1:
+                            st.info("No submissions found.")
+                        else:
+                            submissions_df = pd.DataFrame(submissions_data[1:], columns=submissions_data[0])
+                            filtered = submissions_df[
+                                (submissions_df["course"].str.lower() == selected_course.lower()) &
+                                (submissions_df["lab"].str.lower() == selected_lab.lower())
+                            ]
+        
+                            if filtered.empty:
+                                st.info("No submissions found for this lab.")
+                            else:
+                                for idx, row in filtered.iterrows():
+                                    st.markdown("---")
+                                    st.markdown(f"### 👥 Group: **{row['group_name']}**")
+                                    st.markdown(f"👤 Submitted by: {row['submitted_by']}")
+                                    st.markdown(f"📎 File: [{row['file_name']}]({row['file_link']})")
+        
+                                    file_ext = row['file_name'].split('.')[-1].lower()
+                                    file_link = row['file_link']
+        
+                                    with st.expander("🔍 Preview File"):
+                                        try:
+                                            if file_ext == "pdf":
+                                                st.components.v1.iframe(file_link.replace("/view?usp=sharing", "/preview"), height=600)
+                                            elif file_ext in ["doc", "docx", "ppt", "pptx", "xls", "xlsx"]:
+                                                file_id = file_link.split("/d/")[1].split("/")[0]
+                                                st.components.v1.iframe(f"https://drive.google.com/file/d/{file_id}/preview", height=600)
+                                            elif file_ext == "py":
+                                                file_id = file_link.split("/d/")[1].split("/")[0]
+                                                download_url = f"https://www.googleapis.com/drive/v3/files/{file_id}?alt=media"
+                                                headers = {"Authorization": f"Bearer {creds.token}"}
+                                                response = requests.get(download_url, headers=headers)
+                                                if response.ok:
+                                                    st.code(response.text, language="python")
+                                                else:
+                                                    st.warning("Could not preview Python file.")
+                                            elif file_ext in ["png", "jpg", "jpeg", "gif"]:
+                                                st.image(file_link, use_column_width=True)
+                                            else:
+                                                st.info("⚠️ File preview not supported.")
+                                        except Exception as e:
+                                            st.error(f"Error previewing file: {e}")
+        
+                                    score = st.text_input(f"Enter grade for {row['group_name']}", key=f"score_{idx}")
+                                    if st.button(f"✅ Submit Grade for {row['group_name']}", key=f"submit_{idx}"):
+                                        try:
+                                            row_idx = idx + 2  # Adjust for header + 0-based index
+                                            submissions_ws.update_cell(row_idx, submissions_df.columns.get_loc("graded") + 1, "Yes")
+                                            submissions_ws.update_cell(row_idx, submissions_df.columns.get_loc("grade") + 1, score)
+        
+                                            grade_sheet_name = f"{selected_course}_{selected_lab}".replace(" ", "_")
+                                            try:
+                                                grade_ws = client.open_by_key(group_log_sheet_id).worksheet(grade_sheet_name)
+                                            except:
+                                                grade_ws = client.open_by_key(group_log_sheet_id).add_worksheet(grade_sheet_name, rows="1000", cols="10")
+                                                grade_ws.append_row(["timestamp", "course", "lab", "group_name", "name", "email", "score"])
+        
+                                            group_students = st.session_state.groups_df[st.session_state.groups_df["group_name"] == row["group_name"]]
+                                            for _, student in group_students.iterrows():
+                                                grade_ws.append_row([
+                                                    datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                                    selected_course,
+                                                    selected_lab,
+                                                    row['group_name'],
+                                                    student['name'],
+                                                    student['email'],
+                                                    score
+                                                ])
+        
+                                            st.success(f"✅ Grade saved for {row['group_name']}")
+                                            st.rerun()
+                                        except Exception as e:
+                                            st.error(f"❌ Failed to grade: {e}")
+        
+            except Exception as e:
+                st.error(f"🚫 Failed to load Labs or Submissions: {e}")
 
 else:
     st.error("Unknown user role. Please contact administrator.")
