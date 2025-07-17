@@ -121,23 +121,40 @@ try:
 
     # ========== Load Groups Sheet from student_sheet_id ==========
     def load_student_groups_df():
-        # try:
-        ws = client.open_by_key(student_sheet_id).worksheet("groups")
-        records = ws.get_all_values()
+    # try:
+        groups_ws = client.open_by_key(student_sheet_id).worksheet("groups")
+        group_records = groups_ws.get_all_values()
 
-        if len(records) > 1:
-            df = pd.DataFrame(records[1:], columns=[col.strip() for col in records[0]])
+        if len(group_records) > 1:
+            df = pd.DataFrame(group_records[1:], columns=[col.strip() for col in group_records[0]])
             df["group_name"] = df["group_name"].str.strip()
             return df
         else:
             st.warning("⚠️ The Groups sheet is empty.")
             return pd.DataFrame()
-        # except Exception as e:
-        #     st.error(f"❌ Unable to load Groups sheet: {e}")
-        #     return pd.DataFrame()
+
+    # except Exception as e:
+    #     st.error(f"❌ Unable to load Groups sheet: {e}")
+    #     return pd.DataFrame()
+
+    # === Load groups from GROUP LOG SHEET (used for logging/submission) ===
+    def load_log_groups_df():
+        sheet = client.open_by_key(group_log_sheet_id)
+        try:
+            ws = sheet.worksheet("groups")
+        except gspread.exceptions.WorksheetNotFound:
+            ws = sheet.add_worksheet(title="groups", rows="1000", cols="10")
+        df = pd.DataFrame(ws.get_all_records())
+        return ws, df
 
     if "student_groups_df" not in st.session_state:
         st.session_state.student_groups_df = load_student_groups_df()
+
+    if "groups_ws" not in st.session_state or "groups_df" not in st.session_state:
+        st.session_state.groups_ws, st.session_state.groups_df = load_log_groups_df()
+
+    # if "student_groups_df" not in st.session_state:
+    #     st.session_state.student_groups_df = load_student_groups_df()
 
     # ========== Load Enrolled Students Sheet ==========
     def load_students_df():
@@ -162,17 +179,17 @@ try:
         st.session_state.login_df = load_login_df()
 
     # ========== Load and Create Groups Sheet from group_log_sheet_id ==========
-    def load_log_groups_df():
-        sheet = client.open_by_key(group_log_sheet_id)
-        try:
-            ws = sheet.worksheet("groups")
-        except gspread.exceptions.WorksheetNotFound:
-            ws = sheet.add_worksheet(title="groups", rows="1000", cols="10")
-        df = pd.DataFrame(ws.get_all_records())
-        return ws, df
+    # def load_log_groups_df():
+    #     sheet = client.open_by_key(group_log_sheet_id)
+    #     try:
+    #         ws = sheet.worksheet("groups")
+    #     except gspread.exceptions.WorksheetNotFound:
+    #         ws = sheet.add_worksheet(title="groups", rows="1000", cols="10")
+    #     df = pd.DataFrame(ws.get_all_records())
+    #     return ws, df
 
-    if "log_groups_ws" not in st.session_state or "log_groups_df" not in st.session_state:
-        st.session_state.log_groups_ws, st.session_state.log_groups_df = load_log_groups_df()
+    # if "log_groups_ws" not in st.session_state or "log_groups_df" not in st.session_state:
+    #     st.session_state.log_groups_ws, st.session_state.log_groups_df = load_log_groups_df()
 
     # ========== Load Course List ==========
     def load_course_list():
@@ -183,25 +200,37 @@ try:
         st.session_state.course_list = load_course_list()
 
     # ========== Load Submissions Sheet ==========
+    # def load_submissions_df():
+    #     try:
+    #         submissions_ws = client.open_by_key(group_log_sheet_id).worksheet("Submissions")
+    #         submissions_data = submissions_ws.get_all_records()
+    #         df = pd.DataFrame(submissions_data)
+            
+    #         # Optional cleanup
+    #         if "email" in df.columns:
+    #             df["email"] = df["email"].str.strip().str.lower()
+    #         if "student_id" in df.columns:
+    #             df["student_id"] = df["student_id"].astype(str).str.strip()
+            
+    #         return submissions_ws, df
+    #     except Exception as e:
+    #         st.error(f"❌ Unable to load Submissions sheet: {e}")
+    #         return None, pd.DataFrame()
+
+    # if "submissions_ws" not in st.session_state or "submissions_df" not in st.session_state:
+    #     st.session_state.submissions_ws, st.session_state.submissions_df = load_submissions_df()
     def load_submissions_df():
         try:
-            submissions_ws = client.open_by_key(group_log_sheet_id).worksheet("Submissions")
-            submissions_data = submissions_ws.get_all_records()
-            df = pd.DataFrame(submissions_data)
-            
-            # Optional cleanup
-            if "email" in df.columns:
-                df["email"] = df["email"].str.strip().str.lower()
-            if "student_id" in df.columns:
-                df["student_id"] = df["student_id"].astype(str).str.strip()
-            
-            return submissions_ws, df
+            ws = client.open_by_key(group_log_sheet_id).worksheet("Submissions")
+            df = pd.DataFrame(ws.get_all_records())
+            return df
         except Exception as e:
-            st.error(f"❌ Unable to load Submissions sheet: {e}")
-            return None, pd.DataFrame()
+            st.error(f"❌ Failed to load Submissions sheet: {e}")
+            return pd.DataFrame()
+    
+    if "submissions_df" not in st.session_state:
+        st.session_state.submissions_df = load_submissions_df()
 
-    if "submissions_ws" not in st.session_state or "submissions_df" not in st.session_state:
-        st.session_state.submissions_ws, st.session_state.submissions_df = load_submissions_df()
 
 except (gspread.exceptions.APIError, socket.gaierror, TransportError, Exception) as e:
     st.error(
