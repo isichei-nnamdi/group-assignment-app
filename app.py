@@ -21,29 +21,102 @@ st.set_page_config(
     # layout="wide"
 )
 
+# try:
+#     # ========== Google Sheets Auth ==========
+#     scope = [
+#         "https://spreadsheets.google.com/feeds",
+#         "https://www.googleapis.com/auth/drive"
+#     ]
+    
+#     # Load credentials from secrets
+#     creds = Credentials.from_service_account_info(
+#         st.secrets["google_service_account"],
+#         scopes=scope
+#     )
+    
+#     client = gspread.authorize(creds)
+    
+#     # Now safely access sheet IDs
+#     sheet_id = st.secrets["google_service_account"]["student_sheet_id"]
+    
+#     # Access sheet IDs from secrets
+#     student_sheet_id = st.secrets["google_service_account"]["student_sheet_id"]
+#     group_log_sheet_id = st.secrets["google_service_account"]["group_log_sheet_id"]
+#     developer_email = st.secrets["google_service_account"]["developer_email"]
+#     developer_password = st.secrets["google_service_account"]["developer_password"]
+
+#     if "groups_df" not in st.session_state:
+#         try:
+#             # Google Sheets login (already working in your code)
+#             scope = [
+#                 "https://spreadsheets.google.com/feeds",
+#                 "https://www.googleapis.com/auth/drive"
+#             ]
+#             creds = Credentials.from_service_account_info(
+#                 st.secrets["google_service_account"],
+#                 scopes=scope
+#             )
+#             client = gspread.authorize(creds)
+#             sheet_id = st.secrets["google_service_account"]["student_sheet_id"]
+    
+#             # Load Groups sheet
+#             groups_ws = client.open_by_key(sheet_id).worksheet("Groups")
+#             group_records = groups_ws.get_all_values()
+#             if len(group_records) > 1:
+#                 df = pd.DataFrame(group_records[1:], columns=group_records[0])
+#                 df.columns = [col.strip() for col in df.columns]
+#                 df["group_name"] = df["group_name"].str.strip()
+#                 st.session_state.groups_df = df
+#             else:
+#                 st.session_state.groups_df = pd.DataFrame()
+#                 st.warning("⚠️ The Groups sheet is empty.")
+#         except Exception as e:
+#             st.session_state.groups_df = pd.DataFrame()
+#             st.error(f"❌ Unable to load Groups sheet: {e}")
+# ========== Google Sheets Auth (Only once) ==========
 try:
-    # ========== Google Sheets Auth ==========
     scope = [
         "https://spreadsheets.google.com/feeds",
         "https://www.googleapis.com/auth/drive"
     ]
     
-    # Load credentials from secrets
     creds = Credentials.from_service_account_info(
         st.secrets["google_service_account"],
         scopes=scope
     )
-    
     client = gspread.authorize(creds)
-    
-    # Now safely access sheet IDs
-    sheet_id = st.secrets["google_service_account"]["student_sheet_id"]
-    
-    # Access sheet IDs from secrets
+
+    # Load sheet credentials
     student_sheet_id = st.secrets["google_service_account"]["student_sheet_id"]
     group_log_sheet_id = st.secrets["google_service_account"]["group_log_sheet_id"]
     developer_email = st.secrets["google_service_account"]["developer_email"]
     developer_password = st.secrets["google_service_account"]["developer_password"]
+
+# except Exception as e:
+#     st.error(f"❌ Google Sheets authentication failed: {e}")
+
+    # ========== Load Groups Sheet into Session State ==========
+    def load_groups_df():
+        try:
+            groups_ws = client.open_by_key(student_sheet_id).worksheet("Groups")
+            group_records = groups_ws.get_all_values()
+    
+            if len(group_records) > 1:
+                df = pd.DataFrame(group_records[1:], columns=[col.strip() for col in group_records[0]])
+                df["group_name"] = df["group_name"].str.strip()
+                return df
+            else:
+                st.warning("⚠️ The Groups sheet is empty.")
+                return pd.DataFrame()
+    
+        except Exception as e:
+            st.error(f"❌ Unable to load Groups sheet: {e}")
+            return pd.DataFrame()
+    
+    if "groups_df" not in st.session_state:
+        st.session_state.groups_df = load_groups_df()
+
+
     # folder_id = st.secrets["google_service_account"]["folder_id"]
 
     # ========== Load Data & Cache ==========
@@ -748,39 +821,6 @@ elif st.session_state.user_role == "admin":
         #                     st.error(f"Error grading submission: {e}")
 
         with admin_tabs[4]:
-            # try:
-            #     groups_ws = client.open_by_key(sheet_id).worksheet("groups")
-            #     group_records = groups_ws.get_all_values()
-            #     if len(group_records) > 1:
-            #         groups_df = pd.DataFrame(group_records[1:], columns=group_records[0])
-            #         groups_df.columns = [col.strip() for col in groups_df.columns]
-            #         st.write("Columns in Groups DF:", groups_df.columns.tolist())  # 🧪 Debug here
-            
-            #         if "group_name" in groups_df.columns:
-            #             groups_df["group_name"] = groups_df["group_name"].str.strip()
-            #         else:
-            #             st.error("❌ 'group_name' column not found in Groups sheet.")
-            #     else:
-            #         groups_df = pd.DataFrame()
-            #         st.warning("⚠️ The Groups sheet is empty.")
-            # except Exception as e:
-            #     st.error(f"❌ Unable to load Groups sheet: {e}")
-            #     groups_df = pd.DataFrame()
-            try:
-                groups_ws = client.open_by_key(student_sheet_id).worksheet("groups")
-                group_records = groups_ws.get_all_values()
-                if len(group_records) > 1:
-                    groups_df = pd.DataFrame(group_records[1:], columns=group_records[0])
-                    groups_df.columns = [col.strip() for col in groups_df.columns]
-                    groups_df["group_name"] = groups_df["group_name"].str.strip()
-                else:
-                    groups_df = pd.DataFrame()
-                    st.warning("⚠️ The Groups sheet is empty.")
-            except Exception as e:
-                st.error(f"❌ Unable to load Groups sheet: {e}")
-                groups_df = pd.DataFrame()
-
-
             grading_page(client, sheet_id, creds, groups_df)
 
 else:
