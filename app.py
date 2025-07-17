@@ -821,7 +821,7 @@ elif st.session_state.user_role == "admin":
         #                     st.error(f"Error grading submission: {e}")
 
         with admin_tabs[4]:
-            grading_page(client, sheet_id, creds, groups_df)
+            grading_page(client, student_sheet_id, creds, groups_df)
 
 else:
     st.error("Unknown user role. Please contact administrator.")
