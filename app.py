@@ -754,13 +754,19 @@ elif st.session_state.user_role == "admin":
                 if len(group_records) > 1:
                     groups_df = pd.DataFrame(group_records[1:], columns=group_records[0])
                     groups_df.columns = [col.strip() for col in groups_df.columns]
-                    groups_df["group_name"] = groups_df["group_name"].str.strip()
+                    st.write("Columns in Groups DF:", groups_df.columns.tolist())  # 🧪 Debug here
+            
+                    if "group_name" in groups_df.columns:
+                        groups_df["group_name"] = groups_df["group_name"].str.strip()
+                    else:
+                        st.error("❌ 'group_name' column not found in Groups sheet.")
                 else:
                     groups_df = pd.DataFrame()
                     st.warning("⚠️ The Groups sheet is empty.")
             except Exception as e:
                 st.error(f"❌ Unable to load Groups sheet: {e}")
                 groups_df = pd.DataFrame()
+
             grading_page(client, sheet_id, creds, groups_df)
 
 else:
