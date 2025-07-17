@@ -10,6 +10,7 @@ from email.mime.multipart import MIMEMultipart
 from google.auth.exceptions import TransportError
 import socket
 import json
+import time
 
 st.set_page_config(
     page_title="CreateGroup",
@@ -36,7 +37,9 @@ try:
     developer_password = st.secrets["google_service_account"]["developer_password"]
 
     # ========== Load Data & Cache ==========
+    @st.cache_data(ttl=600)
     def load_students_df():
+        time.sleep(1.5)
         # ws = client.open_by_key(student_sheet_id).worksheet("UNDERGRADUATE")
         ws = client.open_by_key(student_sheet_id).worksheet("Enrolled Students")
         df = pd.DataFrame(ws.get_all_records())
@@ -44,14 +47,18 @@ try:
         df["student_id"] = df["student_id"].astype(str).str.strip()
         return df
 
+    @st.cache_data(ttl=600)
     def load_login_df():
+        time.sleep(1.5)
         ws = client.open_by_key(group_log_sheet_id).worksheet("Login_details")
         df = pd.DataFrame(ws.get_all_records())
         df["Email"] = df["Email"].str.strip().str.lower()
         df["Password"] = df["Password"].astype(str).str.strip()
         return df
 
+    @st.cache_data(ttl=600)
     def load_groups_df():
+        time.sleep(1.5)
         sheet = client.open_by_key(group_log_sheet_id)
         try:
             ws = sheet.worksheet("groups")
@@ -69,7 +76,9 @@ try:
     if "groups_ws" not in st.session_state or "groups_df" not in st.session_state:
         st.session_state.groups_ws, st.session_state.groups_df = load_groups_df()
 
+    @st.cache_data(ttl=600)
     def load_course_list():
+        time.sleep(1.5)
         course_ws = client.open_by_key(group_log_sheet_id).worksheet("course_list")
         return sorted(pd.Series(course_ws.col_values(1)).dropna().unique())
 
