@@ -772,42 +772,64 @@ elif st.session_state.user_role == "admin":
                 ])
         
             # --- Load Labs Sheet ---
-            try:
-                labs_ws = client.open_by_key(sheet_id).worksheet("Labs")
-            except:
-                spreadsheet = client.open_by_key(sheet_id)
-                labs_ws = spreadsheet.add_worksheet(title="Labs", rows="100", cols="3")
-                labs_ws.append_row(["Lab Name", "Course"])
-        
+            # try:
+            #     labs_ws = client.open_by_key(sheet_id).worksheet("Labs")
+            # except:
+            #     spreadsheet = client.open_by_key(sheet_id)
+            #     labs_ws = spreadsheet.add_worksheet(title="Labs", rows="100", cols="3")
+            #     labs_ws.append_row(["Lab Name", "Course"])
+
             # labs_data = labs_ws.get_all_values()
             # if len(labs_data) > 1:
-            #     labs_df = pd.DataFrame(labs_data[1:], columns=labs_data[0])
-            #     labs_df["Course"] = labs_df["Course"].str.strip()
-            #     labs_df["Lab Name"] = labs_df["Lab Name"].str.strip()
-            #     course_options = sorted(labs_df["Course"].dropna().unique())
+            #     header = [h.strip() for h in labs_data[0]]  # Normalize column headers
+            #     labs_df = pd.DataFrame(labs_data[1:], columns=header)
+            
+            #     if "Course" in labs_df.columns and "Lab Name" in labs_df.columns:
+            #         labs_df["Course"] = labs_df["Course"].str.strip()
+            #         labs_df["Lab Name"] = labs_df["Lab Name"].str.strip()
+            #         course_options = sorted(labs_df["Course"].dropna().unique())
+            #     else:
+            #         st.error("❌ Labs sheet must have 'Lab Name' and 'Course' as headers.")
+            #         st.stop()
             # else:
-            #     labs_df = pd.DataFrame(columns=["Lab Name", "Course"])
-            #     course_options = []
             #     st.warning("⚠️ No lab records found in the Labs sheet.")
             #     st.stop()
 
-            labs_data = labs_ws.get_all_values()
-            if len(labs_data) > 1:
-                header = [h.strip() for h in labs_data[0]]  # Normalize column headers
-                labs_df = pd.DataFrame(labs_data[1:], columns=header)
-
-                st.write(labs_df)
-            
-                if "Course" in labs_df.columns and "Lab Name" in labs_df.columns:
-                    labs_df["Course"] = labs_df["Course"].str.strip()
-                    labs_df["Lab Name"] = labs_df["Lab Name"].str.strip()
-                    course_options = sorted(labs_df["Course"].dropna().unique())
-                else:
-                    st.error("❌ Labs sheet must have 'Lab Name' and 'Course' as headers.")
+            # Load Labs sheet for course-lab relationship
+            try:
+                labs_ws = client.open_by_key(sheet_id).worksheet("Labs")
+                labs_data = labs_ws.get_all_values()
+                
+                # Show raw labs data for debug
+                if len(labs_data) == 0:
+                    st.warning("⚠️ Labs sheet is empty.")
                     st.stop()
-            else:
-                st.warning("⚠️ No lab records found in the Labs sheet.")
+                    
+                st.write("📋 Raw Labs Sheet Data:", labs_data)  # Optional: for debugging
+            
+                if len(labs_data) > 1:
+                    # Normalize column headers
+                    header = [h.strip() for h in labs_data[0]]
+                    labs_df = pd.DataFrame(labs_data[1:], columns=header)
+            
+                    # Normalize expected column names
+                    expected_columns = {"lab name": "Lab Name", "course": "Course"}
+                    labs_df.columns = [expected_columns.get(col.strip().lower(), col.strip()) for col in labs_df.columns]
+            
+                    if "Course" in labs_df.columns and "Lab Name" in labs_df.columns:
+                        labs_df["Course"] = labs_df["Course"].str.strip()
+                        labs_df["Lab Name"] = labs_df["Lab Name"].str.strip()
+                        course_options = sorted(labs_df["Course"].dropna().unique())
+                    else:
+                        st.error("❌ 'Lab Name' and 'Course' columns not found in Labs sheet.")
+                        st.stop()
+                else:
+                    st.warning("⚠️ No lab records found beyond the header row.")
+                    st.stop()
+            except Exception as e:
+                st.error(f"❌ Unable to load Labs sheet: {e}")
                 st.stop()
+
         
             # --- Course & Lab Selection ---
             selected_course = st.selectbox("Select Course", course_options, key="grade_course")
@@ -853,7 +875,7 @@ elif st.session_state.user_role == "admin":
                             st.text_area("Notebook Preview", content[:3000], height=400)
                         except:
                             st.error("Unable to preview .ipynb file.")
-                    elif file_ext == "py":
+                    elif file_ext == "py": 
                         try:
                             import requests
                             content = requests.get(file_link).text
