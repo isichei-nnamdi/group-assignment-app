@@ -39,7 +39,7 @@ try:
     # ========== Load Data & Cache ==========
     @st.cache_data(ttl=600)
     def load_students_df():
-        time.sleep(1.5)
+        # time.sleep(1.5)
         # ws = client.open_by_key(student_sheet_id).worksheet("UNDERGRADUATE")
         ws = client.open_by_key(student_sheet_id).worksheet("Enrolled Students")
         df = pd.DataFrame(ws.get_all_records())
@@ -49,7 +49,7 @@ try:
 
     @st.cache_data(ttl=600)
     def load_login_df():
-        time.sleep(1.5)
+        # time.sleep(1.5)
         ws = client.open_by_key(group_log_sheet_id).worksheet("Login_details")
         df = pd.DataFrame(ws.get_all_records())
         df["Email"] = df["Email"].str.strip().str.lower()
@@ -58,7 +58,7 @@ try:
 
     @st.cache_data(ttl=600)
     def load_groups_df():
-        time.sleep(1.5)
+        # time.sleep(1.5)
         sheet = client.open_by_key(group_log_sheet_id)
         try:
             ws = sheet.worksheet("groups")
@@ -78,7 +78,7 @@ try:
 
     @st.cache_data(ttl=600)
     def load_course_list():
-        time.sleep(1.5)
+        # time.sleep(1.5)
         course_ws = client.open_by_key(group_log_sheet_id).worksheet("course_list")
         return sorted(pd.Series(course_ws.col_values(1)).dropna().unique())
 
