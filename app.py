@@ -40,25 +40,25 @@ try:
     developer_password = st.secrets["google_service_account"]["developer_password"]
 
     # ========== Load Groups Sheet into Session State ==========
-    def load_groups_df():
-        try:
-            groups_ws = client.open_by_key(student_sheet_id).worksheet("groups")
-            group_records = groups_ws.get_all_values()
+    # def load_groups_df():
+    #     try:
+    #         groups_ws = client.open_by_key(student_sheet_id).worksheet("groups")
+    #         group_records = groups_ws.get_all_values()
     
-            if len(group_records) > 1:
-                df = pd.DataFrame(group_records[1:], columns=[col.strip() for col in group_records[0]])
-                df["group_name"] = df["group_name"].str.strip()
-                return df
-            else:
-                st.warning("⚠️ The Groups sheet is empty.")
-                return pd.DataFrame()
+    #         if len(group_records) > 1:
+    #             df = pd.DataFrame(group_records[1:], columns=[col.strip() for col in group_records[0]])
+    #             df["group_name"] = df["group_name"].str.strip()
+    #             return df
+    #         else:
+    #             st.warning("⚠️ The Groups sheet is empty.")
+    #             return pd.DataFrame()
     
-        except Exception as e:
-            st.error(f"❌ Unable to load Groups sheet: {e}")
-            return pd.DataFrame()
+    #     except Exception as e:
+    #         st.error(f"❌ Unable to load Groups sheet: {e}")
+    #         return pd.DataFrame()
     
-    if "groups_df" not in st.session_state:
-        st.session_state.groups_df = load_groups_df()
+    # if "groups_df" not in st.session_state:
+    #     st.session_state.groups_df = load_groups_df()
 
     # ========== Load Data & Cache ==========
     def load_students_df():
