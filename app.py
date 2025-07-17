@@ -798,7 +798,7 @@ elif st.session_state.user_role == "admin":
 
             # Load Labs sheet for course-lab relationship
             try:
-                labs_ws = client.open_by_key(sheet_id).worksheet("Submissions") # --------------
+                labs_ws = client.open_by_key(sheet_id).worksheet("Labs") # --------------
                 labs_data = labs_ws.get_all_values()
                 
                 # Show raw labs data for debug
@@ -806,12 +806,14 @@ elif st.session_state.user_role == "admin":
                     st.warning("⚠️ Labs sheet is empty.")
                     st.stop()
                     
-                st.write("📋 Raw Labs Sheet Data:", labs_data)  # Optional: for debugging
+                # st.write("📋 Raw Labs Sheet Data:", labs_data)  # Optional: for debugging
             
                 if len(labs_data) > 1:
                     # Normalize column headers
                     header = [h.strip() for h in labs_data[0]]
                     labs_df = pd.DataFrame(labs_data[1:], columns=header)
+
+                    st.write(labs_df)
             
                     # Normalize expected column names
                     expected_columns = {"lab name": "Lab Name", "course": "Course"}
