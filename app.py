@@ -10,7 +10,7 @@ from email.mime.multipart import MIMEMultipart
 from google.auth.exceptions import TransportError
 import socket
 import json
-from grading_page import grading_page
+# from grading_page import grading_page
 # from student_submission_page import student_submission_page
 
 
