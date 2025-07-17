@@ -121,20 +121,20 @@ try:
 
     # ========== Load Groups Sheet from student_sheet_id ==========
     def load_student_groups_df():
-        try:
-            ws = client.open_by_key(student_sheet_id).worksheet("groups")
-            records = ws.get_all_values()
+        # try:
+        ws = client.open_by_key(student_sheet_id).worksheet("groups")
+        records = ws.get_all_values()
 
-            if len(records) > 1:
-                df = pd.DataFrame(records[1:], columns=[col.strip() for col in records[0]])
-                df["group_name"] = df["group_name"].str.strip()
-                return df
-            else:
-                st.warning("⚠️ The Groups sheet is empty.")
-                return pd.DataFrame()
-        except Exception as e:
-            st.error(f"❌ Unable to load Groups sheet: {e}")
+        if len(records) > 1:
+            df = pd.DataFrame(records[1:], columns=[col.strip() for col in records[0]])
+            df["group_name"] = df["group_name"].str.strip()
+            return df
+        else:
+            st.warning("⚠️ The Groups sheet is empty.")
             return pd.DataFrame()
+        # except Exception as e:
+        #     st.error(f"❌ Unable to load Groups sheet: {e}")
+        #     return pd.DataFrame()
 
     if "student_groups_df" not in st.session_state:
         st.session_state.student_groups_df = load_student_groups_df()
