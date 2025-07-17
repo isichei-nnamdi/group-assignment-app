@@ -748,7 +748,20 @@ elif st.session_state.user_role == "admin":
         #                     st.error(f"Error grading submission: {e}")
 
         with admin_tabs[4]:
-           grading_page(client, sheet_id, creds, groups_df)
+            try:
+                groups_ws = client.open_by_key(sheet_id).worksheet("groups")
+                group_records = groups_ws.get_all_values()
+                if len(group_records) > 1:
+                    groups_df = pd.DataFrame(group_records[1:], columns=group_records[0])
+                    groups_df.columns = [col.strip() for col in groups_df.columns]
+                    groups_df["group_name"] = groups_df["group_name"].str.strip()
+                else:
+                    groups_df = pd.DataFrame()
+                    st.warning("⚠️ The Groups sheet is empty.")
+            except Exception as e:
+                st.error(f"❌ Unable to load Groups sheet: {e}")
+                groups_df = pd.DataFrame()
+            grading_page(client, sheet_id, creds, groups_df)
 
 else:
     st.error("Unknown user role. Please contact administrator.")
