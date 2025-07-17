@@ -98,7 +98,7 @@ try:
     # ========== Load Groups Sheet into Session State ==========
     def load_groups_df():
         try:
-            groups_ws = client.open_by_key(student_sheet_id).worksheet("Groups")
+            groups_ws = client.open_by_key(student_sheet_id).worksheet("groups")
             group_records = groups_ws.get_all_values()
     
             if len(group_records) > 1:
