@@ -113,6 +113,14 @@ try:
     gc = get_gspread_client()
     client = gc
 
+    creds = Credentials.from_service_account_info(
+    st.secrets["google_service_account"],
+    scopes=[
+        "https://www.googleapis.com/auth/drive",
+        "https://www.googleapis.com/auth/spreadsheets",
+        ]
+    )
+    
     # ---- 2. grab the sheet ids once, keep them in session_state -------
     if "student_sheet_id" not in st.session_state:
         ss = st.secrets["google_service_account"]
