@@ -131,6 +131,8 @@ try:
 
     student_sheet_id   = st.session_state.student_sheet_id
     group_log_sheet_id = st.session_state.group_log_sheet_id
+    developer_email = st.session_state.dev_email
+    developer_password = st.session_state.dev_password
 
     # ---- 3. cached loaders (10 min) -----------------------------------
     @st.cache_data(ttl=600)
