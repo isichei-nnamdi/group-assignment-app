@@ -11,6 +11,7 @@ from google.auth.exceptions import TransportError
 import socket
 import json
 import time
+from datetime import timedelta
 
 st.set_page_config(
     page_title="CreateGroup",
@@ -18,85 +19,174 @@ st.set_page_config(
     # layout="wide"
 )
 
-try:
-    scope = [
-        "https://spreadsheets.google.com/feeds",
-        "https://www.googleapis.com/auth/drive"
-    ]
+# try:
+#     scope = [
+#         "https://spreadsheets.google.com/feeds",
+#         "https://www.googleapis.com/auth/drive"
+#     ]
     
-    creds = Credentials.from_service_account_info(
-        st.secrets["google_service_account"],
-        scopes=scope
+#     creds = Credentials.from_service_account_info(
+#         st.secrets["google_service_account"],
+#         scopes=scope
+#     )
+#     client = gspread.authorize(creds)
+
+#     # Load sheet credentials
+#     student_sheet_id = st.secrets["google_service_account"]["student_sheet_id"]
+#     group_log_sheet_id = st.secrets["google_service_account"]["group_log_sheet_id"]
+#     developer_email = st.secrets["google_service_account"]["developer_email"]
+#     developer_password = st.secrets["google_service_account"]["developer_password"]
+
+#     # ========== Load Data & Cache ==========
+#     @st.cache_data(ttl=600)
+#     def load_students_df():
+#         # time.sleep(1.5)
+#         # ws = client.open_by_key(student_sheet_id).worksheet("UNDERGRADUATE")
+#         ws = client.open_by_key(student_sheet_id).worksheet("Enrolled Students")
+#         df = pd.DataFrame(ws.get_all_records())
+#         df["email"] = df["email"].str.strip().str.lower()
+#         df["student_id"] = df["student_id"].astype(str).str.strip()
+#         return df
+
+#     @st.cache_data(ttl=600)
+#     def load_login_df():
+#         # time.sleep(1.5)
+#         ws = client.open_by_key(group_log_sheet_id).worksheet("Login_details")
+#         df = pd.DataFrame(ws.get_all_records())
+#         df["Email"] = df["Email"].str.strip().str.lower()
+#         df["Password"] = df["Password"].astype(str).str.strip()
+#         return df
+
+#     @st.cache_data(ttl=600)
+#     def load_groups_df():
+#         # time.sleep(1.5)
+#         sheet = client.open_by_key(group_log_sheet_id)
+#         try:
+#             ws = sheet.worksheet("groups")
+#         except gspread.exceptions.WorksheetNotFound:
+#             ws = sheet.add_worksheet(title="groups", rows="1000", cols="10")
+#         df = pd.DataFrame(ws.get_all_records())
+#         return ws, df
+
+#     if "students_df" not in st.session_state:
+#         st.session_state.students_df = load_students_df()
+
+#     if "login_df" not in st.session_state:
+#         st.session_state.login_df = load_login_df()
+
+#     if "groups_ws" not in st.session_state or "groups_df" not in st.session_state:
+#         st.session_state.groups_ws, st.session_state.groups_df = load_groups_df()
+
+#     @st.cache_data(ttl=600)
+#     def load_course_list():
+#         # time.sleep(1.5)
+#         course_ws = client.open_by_key(group_log_sheet_id).worksheet("course_list")
+#         return sorted(pd.Series(course_ws.col_values(1)).dropna().unique())
+
+#     if "course_list" not in st.session_state:
+#         st.session_state.course_list = load_course_list()
+
+# except (gspread.exceptions.APIError, socket.gaierror, TransportError, Exception) as e:
+#     st.error(
+#         f"""
+#     🚫 **Connection Error**
+
+#     We couldn't connect to the database or load required data. Please check your internet connection or try again later.
+
+#     **Details:** `{str(e)}`
+
+#     If the issue persists, contact the app administrator.
+#     """)
+#     st.stop()
+
+# ---- 1. single helper that returns an *already‑authorised* client ---
+def get_gspread_client():
+    scopes = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive",
+    ]
+    return gspread.service_account_from_dict(
+        st.secrets["google_service_account"], scopes=scopes
     )
-    client = gspread.authorize(creds)
 
-    # Load sheet credentials
-    student_sheet_id = st.secrets["google_service_account"]["student_sheet_id"]
-    group_log_sheet_id = st.secrets["google_service_account"]["group_log_sheet_id"]
-    developer_email = st.secrets["google_service_account"]["developer_email"]
-    developer_password = st.secrets["google_service_account"]["developer_password"]
+try:
+    gc = get_gspread_client()
 
-    # ========== Load Data & Cache ==========
+    # ---- 2. grab the sheet ids once, keep them in session_state -------
+    if "student_sheet_id" not in st.session_state:
+        ss = st.secrets["google_service_account"]
+        st.session_state.student_sheet_id   = ss["student_sheet_id"]
+        st.session_state.group_log_sheet_id = ss["group_log_sheet_id"]
+        st.session_state.dev_email          = ss["developer_email"]
+        st.session_state.dev_password       = ss["developer_password"]
+
+    student_sheet_id   = st.session_state.student_sheet_id
+    group_log_sheet_id = st.session_state.group_log_sheet_id
+
+    # ---- 3. cached loaders (10 min) -----------------------------------
     @st.cache_data(ttl=600)
-    def load_students_df():
-        # time.sleep(1.5)
-        # ws = client.open_by_key(student_sheet_id).worksheet("UNDERGRADUATE")
-        ws = client.open_by_key(student_sheet_id).worksheet("Enrolled Students")
-        df = pd.DataFrame(ws.get_all_records())
-        df["email"] = df["email"].str.strip().str.lower()
-        df["student_id"] = df["student_id"].astype(str).str.strip()
+    def load_df(key: str, worksheet: str) -> pd.DataFrame:
+        """Generic helper – returns an empty DF if worksheet is empty."""
+        ws   = gc.open_by_key(key).worksheet(worksheet)
+        data = ws.get_all_values()
+        if len(data) <= 1:      # header row only
+            return pd.DataFrame()
+        df = pd.DataFrame(data[1:], columns=[c.strip() for c in data[0]])
         return df
 
     @st.cache_data(ttl=600)
-    def load_login_df():
-        # time.sleep(1.5)
-        ws = client.open_by_key(group_log_sheet_id).worksheet("Login_details")
-        df = pd.DataFrame(ws.get_all_records())
-        df["Email"] = df["Email"].str.strip().str.lower()
-        df["Password"] = df["Password"].astype(str).str.strip()
-        return df
-
-    @st.cache_data(ttl=600)
-    def load_groups_df():
-        # time.sleep(1.5)
-        sheet = client.open_by_key(group_log_sheet_id)
+    def load_groups_ws_and_df():
+        sht  = gc.open_by_key(group_log_sheet_id)
         try:
-            ws = sheet.worksheet("groups")
+            ws = sht.worksheet("groups")
         except gspread.exceptions.WorksheetNotFound:
-            ws = sheet.add_worksheet(title="groups", rows="1000", cols="10")
-        df = pd.DataFrame(ws.get_all_records())
+            ws = sht.add_worksheet("groups", rows=1000, cols=12)
+        df = load_df(group_log_sheet_id, "groups")
         return ws, df
 
+    # ---- 4. put every table you need into session_state ---------------
     if "students_df" not in st.session_state:
-        st.session_state.students_df = load_students_df()
+        df = load_df(student_sheet_id, "Enrolled Students")
+        if not df.empty:
+            df["email"]      = df["email"].str.strip().str.lower()
+            df["student_id"] = df["student_id"].astype(str).str.strip()
+        st.session_state.students_df = df
 
     if "login_df" not in st.session_state:
-        st.session_state.login_df = load_login_df()
+        df = load_df(group_log_sheet_id, "Login_details")
+        if not df.empty:
+            df["Email"]    = df["Email"].str.strip().str.lower()
+            df["Password"] = df["Password"].astype(str).str.strip()
+        st.session_state.login_df = df
 
     if "groups_ws" not in st.session_state or "groups_df" not in st.session_state:
-        st.session_state.groups_ws, st.session_state.groups_df = load_groups_df()
-
-    @st.cache_data(ttl=600)
-    def load_course_list():
-        # time.sleep(1.5)
-        course_ws = client.open_by_key(group_log_sheet_id).worksheet("course_list")
-        return sorted(pd.Series(course_ws.col_values(1)).dropna().unique())
+        ws, df = load_groups_ws_and_df()
+        st.session_state.groups_ws  = ws
+        st.session_state.groups_df  = df
 
     if "course_list" not in st.session_state:
-        st.session_state.course_list = load_course_list()
+        course_df = load_df(group_log_sheet_id, "course_list")
+        st.session_state.course_list = sorted(course_df.iloc[:, 0].dropna().unique())
 
-except (gspread.exceptions.APIError, socket.gaierror, TransportError, Exception) as e:
+except (gspread.exceptions.APIError,
+        socket.gaierror,
+        TransportError,
+        Exception) as e:
     st.error(
         f"""
-    🚫 **Connection Error**
+🚫 **Connection Error**
 
-    We couldn't connect to the database or load required data. Please check your internet connection or try again later.
+We couldn't connect to Google Sheets / Drive.  
+Please check your internet connection or try again later.
 
-    **Details:** `{str(e)}`
+**Details:** `{e}`
 
-    If the issue persists, contact the app administrator.
-    """)
+If the issue persists, contact the app administrator.
+"""
+    )
     st.stop()
+
+
 
 
 # ========== Session Defaults ==========
