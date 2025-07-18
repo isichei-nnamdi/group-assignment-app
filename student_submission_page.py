@@ -168,26 +168,59 @@ def student_submission_page(group_info, selected_course, student_email, client, 
             elif file_ext in ["png", "jpg", "jpeg", "gif"]:
                 st.image(file_link, caption=file_name, use_column_width=True)
 
+            # elif file_ext == "py":
+            #     import requests
+            
+            #     try:
+            #         # Extract file ID from the Google Drive link
+            #         file_id = file_link.split("/d/")[1].split("/")[0]
+            #         download_url = f"https://www.googleapis.com/drive/v3/files/{file_id}?alt=media"
+            #         headers = {"Authorization": f"Bearer {creds.token}"}
+            
+            #         response = requests.get(download_url, headers=headers)
+            
+            #         if response.status_code == 200:
+            #             code_content = response.text
+            #             st.code(code_content, language='python')
+            #         else:
+            #             st.warning("⚠️ Unable to fetch the Python file content for preview.")
+            #     except Exception as e:
+            #         st.warning(f"⚠️ Error displaying .py file: {e}")
+
             elif file_ext == "py":
                 import requests
+                from google.auth.transport.requests import Request
             
                 try:
-                    # Extract file ID from the Google Drive link
+                    # ➊ refresh token if needed
+                    if not creds.valid:
+                        creds.refresh(Request())
+            
+                    # ➋ extract file‑id
                     file_id = file_link.split("/d/")[1].split("/")[0]
-                    download_url = f"https://www.googleapis.com/drive/v3/files/{file_id}?alt=media"
+            
+                    # ➌ build download URL – note supportsAllDrives
+                    download_url = (
+                        f"https://www.googleapis.com/drive/v3/files/{file_id}"
+                        "?alt=media&supportsAllDrives=true"
+                    )
+            
+                    # ➍ authenticated GET
                     headers = {"Authorization": f"Bearer {creds.token}"}
+                    r = requests.get(download_url, headers=headers, timeout=20)
             
-                    response = requests.get(download_url, headers=headers)
-            
-                    if response.status_code == 200:
-                        code_content = response.text
-                        st.code(code_content, language='python')
+                    if r.ok:
+                        st.code(r.text, language="python")
                     else:
-                        st.warning("⚠️ Unable to fetch the Python file content for preview.")
+                        st.warning(
+                            f"⚠️ Drive returned {r.status_code}. "
+                            "Check that the file is shared with the service‑account "
+                            "and that the ID is correct."
+                        )
+            
                 except Exception as e:
-                    st.warning(f"⚠️ Error displaying .py file: {e}")
+                    st.error(f"⚠️ Error displaying .py file: {e}")
 
-    
             else:
                 st.info("⚠️ Preview not supported for this file type.")
 
