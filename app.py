@@ -111,6 +111,7 @@ def get_gspread_client():
 
 try:
     gc = get_gspread_client()
+    client = gc
 
     # ---- 2. grab the sheet ids once, keep them in session_state -------
     if "student_sheet_id" not in st.session_state:
