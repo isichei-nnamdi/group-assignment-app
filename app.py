@@ -415,35 +415,72 @@ if st.session_state.user_role == "student":
 
         # Filter eligible students
         eligible_df = df[~df["email"].isin(already_grouped) | (df["email"] == current_email)].copy()
-        eligible_df["Display"] = eligible_df["fullname"] + " (" + eligible_df["email"] + ")"
-        display_to_name = dict(zip(eligible_df["Display"], eligible_df["fullname"]))
-        display_to_email = dict(zip(eligible_df["Display"], eligible_df["email"]))
+        # eligible_df["Display"] = eligible_df["fullname"] + " (" + eligible_df["email"] + ")"
+        # display_to_name = dict(zip(eligible_df["Display"], eligible_df["fullname"]))
+        # display_to_email = dict(zip(eligible_df["Display"], eligible_df["email"]))
+        eligible_emails_set = set(eligible_df["email"])
+        current_fullname = eligible_df[eligible_df["email"] == current_email]["fullname"].values[0]
+        
+        st.write(f"Your email `{current_email}` has been added automatically.")
 
-        current_display = eligible_df[eligible_df["email"] == current_email]["Display"].values[0]
-        student_options = eligible_df["Display"].tolist()
-        if current_display not in student_options:
-            student_options.insert(0, current_display)
+        # Let the user input a comma-separated list of emails
+        email_input = st.text_area("Enter the emails of students to add to your group (comma-separated):")
+        
+        # Process the input
+        input_emails = [email.strip().lower() for email in email_input.split(",") if email.strip()]
+        input_emails = list(set(input_emails))  # Remove duplicates if any
+        
+        # Ensure current user's email is always included
+        if current_email not in input_emails:
+            input_emails.append(current_email)
 
-        def format_option(option):
-            return f"✅ {option} (You)" if option == current_display else option
+        # Split valid and invalid emails
+        valid_emails = [email for email in input_emails if email in eligible_emails_set]
+        invalid_emails = [email for email in input_emails if email not in eligible_emails_set]
+        
+        # Inform user about invalid emails
+        if invalid_emails:
+            st.warning(f"The following emails are invalid or not eligible: {', '.join(invalid_emails)}")
+            st.info(f"Valid emails so far: {', '.join(valid_emails)}")
 
-        selected_display = st.multiselect(
-            "Choose 3–15 students (you must be part of your own group)",
-            options=student_options,
-            default=[current_display],
-            format_func=format_option
-        )
 
-        if current_display not in selected_display:
-            st.warning("You must be part of your group. We've re-added you.")
-            selected_display = [current_display] + [opt for opt in selected_display if opt != current_display]
 
-        selected_names = [display_to_name[item] for item in selected_display]
-        selected_emails = [display_to_email[item] for item in selected_display]
+        # current_display = eligible_df[eligible_df["email"] == current_email]["Display"].values[0]
+        # student_options = eligible_df["Display"].tolist()
+        # if current_display not in student_options:
+        #     student_options.insert(0, current_display)
+
+        # def format_option(option):
+        #     return f"✅ {option} (You)" if option == current_display else option
+
+        # selected_display = st.multiselect(
+        #     "Choose 3–15 students (you must be part of your own group)",
+        #     options=student_options,
+        #     default=[current_display],
+        #     format_func=format_option
+        # )
+
+        # if current_display not in selected_display:
+        #     st.warning("You must be part of your group. We've re-added you.")
+        #     selected_display = [current_display] + [opt for opt in selected_display if opt != current_display]
+
+        # Filter eligible_df to only those in valid_emails
+        valid_df = eligible_df[eligible_df["email"].isin(valid_emails)].copy()
+        
+        # Get selected names and emails
+        selected_names = valid_df["fullname"].tolist()
+        selected_emails = valid_df["email"].tolist()
+
+        # selected_names = [display_to_name[item] for item in selected_display]
+        # selected_emails = [display_to_email[item] for item in selected_display]
 
         group_name = st.text_input("Enter Group Name")
 
         if st.button("Create Group"):
+            if current_email not in valid_emails:
+                st.warning("You must be part of your own group. Your email has been re-added.")
+                valid_emails.append(current_email)
+                
             if len(selected_emails) < 3:
                 st.warning("You must select at least 3 students.")
                 st.stop()
