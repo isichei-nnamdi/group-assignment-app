@@ -419,7 +419,7 @@ elif st.session_state.user_role == "admin":
 
     with col2:
         st.subheader("👩‍💼 Admin Panel")
-        admin_tabs = st.tabs(["📋 View Groups", "⬇️ Download", "❌ Delete Group", "👥 View & Assign", "📝 Grade Submissions"])
+        admin_tabs = st.tabs(["📋 View Groups", "⬇️ Download", "❌ Delete Group", "📝 Grade Submissions"]) #"👥 View & Assign",
 
         with admin_tabs[0]:
             st.markdown("### 🔍 Filter and View Groups")
@@ -543,41 +543,41 @@ elif st.session_state.user_role == "admin":
                         st.rerun()
 
             
-        with admin_tabs[3]:
-            st.markdown("### 👥 View Group Members & Assign Students")
+        # with admin_tabs[3]:
+        #     st.markdown("### 👥 View Group Members & Assign Students")
 
-            if st.session_state.groups_df.empty:
-                st.info("No groups created yet.")
-            else:
-                # Filters for Faculty, Department, Course
-                faculty_options = st.session_state.groups_df["faculty"].dropna().unique().tolist()
-                selected_faculty = st.selectbox("Select Faculty", faculty_options, key="assign_faculty")
+        #     if st.session_state.groups_df.empty:
+        #         st.info("No groups created yet.")
+        #     else:
+        #         # Filters for Faculty, Department, Course
+        #         faculty_options = st.session_state.groups_df["faculty"].dropna().unique().tolist()
+        #         selected_faculty = st.selectbox("Select Faculty", faculty_options, key="assign_faculty")
 
-                dept_options = st.session_state.groups_df[
-                    st.session_state.groups_df["faculty"] == selected_faculty
-                ]["department"].dropna().unique().tolist()
-                selected_department = st.selectbox("Select Department", dept_options, key="assign_department")
+        #         dept_options = st.session_state.groups_df[
+        #             st.session_state.groups_df["faculty"] == selected_faculty
+        #         ]["department"].dropna().unique().tolist()
+        #         selected_department = st.selectbox("Select Department", dept_options, key="assign_department")
 
-                course_options = st.session_state.groups_df[
-                    (st.session_state.groups_df["faculty"] == selected_faculty) &
-                    (st.session_state.groups_df["department"] == selected_department)
-                ]["course"].dropna().unique().tolist()
-                selected_course = st.selectbox("Select Course", course_options, key="assign_course")
+        #         course_options = st.session_state.groups_df[
+        #             (st.session_state.groups_df["faculty"] == selected_faculty) &
+        #             (st.session_state.groups_df["department"] == selected_department)
+        #         ]["course"].dropna().unique().tolist()
+        #         selected_course = st.selectbox("Select Course", course_options, key="assign_course")
 
-                # Filtered groups
-                filtered_groups = st.session_state.groups_df[
-                    (st.session_state.groups_df["faculty"] == selected_faculty) &
-                    (st.session_state.groups_df["department"] == selected_department) &
-                    (st.session_state.groups_df["course"] == selected_course)
-                ]
+        #         # Filtered groups
+        #         filtered_groups = st.session_state.groups_df[
+        #             (st.session_state.groups_df["faculty"] == selected_faculty) &
+        #             (st.session_state.groups_df["department"] == selected_department) &
+        #             (st.session_state.groups_df["course"] == selected_course)
+        #         ]
 
-                group_names = filtered_groups["group_name"].unique().tolist()
-                selected_group = st.selectbox("Select Group to View Members", group_names)
+        #         group_names = filtered_groups["group_name"].unique().tolist()
+        #         selected_group = st.selectbox("Select Group to View Members", group_names)
 
-                group_members = filtered_groups[filtered_groups["group_name"] == selected_group]
+        #         group_members = filtered_groups[filtered_groups["group_name"] == selected_group]
 
-                st.markdown(f"#### Members of **{selected_group}**")
-                st.write(group_members)  # or process as a list if needed
+        #         st.markdown(f"#### Members of **{selected_group}**")
+        #         st.write(group_members)  # or process as a list if needed
 
 
                 # # Load students_df to identify ungrouped students
@@ -647,7 +647,7 @@ elif st.session_state.user_role == "admin":
                 #             if assigned:
                 #                 st.success("✅ Selected students have been added to the group.")
                 #                 st.rerun()
-        with admin_tabs[4]:
+        with admin_tabs[3]:
             st.markdown("### 📝 Grade Lab Submissions")
 
             try:
