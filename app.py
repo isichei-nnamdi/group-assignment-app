@@ -812,6 +812,24 @@ elif st.session_state.user_role == "admin":
                                                 grade_ws.append_row(["timestamp", "course", "lab", "group_name", "name", "email", "score"])
         
                                             group_students = st.session_state.groups_df[st.session_state.groups_df["group_name"] == row["group_name"]]
+
+                                            # Check if group_students has multiple rows or just one with comma-separated names
+                                            if group_students.shape[0] == 1 and "member_names" in group_students.columns and "," in group_students.iloc[0]["member_names"]:
+                                                # Split comma-separated names and emails into lists
+                                                names = [n.strip() for n in group_students.iloc[0]["member_names"].split(",")]
+                                                emails = [e.strip() for e in group_students.iloc[0]["members"].split(",")]
+
+                                                for name, email in zip(names, emails):
+                                                    grade_ws.append_row([
+                                                        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                                        selected_course,
+                                                        selected_lab,
+                                                        row['group_name'],
+                                                        name,
+                                                        email,
+                                                        score
+                                                    ])
+                                                
                                             for _, student in group_students.iterrows():
                                                 grade_ws.append_row([
                                                     datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
