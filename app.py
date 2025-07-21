@@ -16,6 +16,7 @@ import requests
 from io import BytesIO
 import logging
 from datetime import timedelta
+from googleapiclient.http import MediaIoBaseUpload, MediaIoBaseDownload
 from google.auth.transport.requests import Request
 
 
