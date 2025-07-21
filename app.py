@@ -690,7 +690,8 @@ elif st.session_state.user_role == "admin":
                             
                             filtered = submissions_df[
                                 (submissions_df["course"].str.lower() == selected_course.lower()) &
-                                (submissions_df["lab"].str.lower() == selected_lab.lower())
+                                (submissions_df["lab"].str.lower() == selected_lab.lower()) &
+                                (submissions_df["group_name"].str.lower() == selected_submission_group.lower())
                             ]
         
                             if filtered.empty:
