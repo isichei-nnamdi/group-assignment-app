@@ -677,7 +677,7 @@ elif st.session_state.user_role == "admin":
                         
                         # Get list of unique group names from the 'group_name' column
                         if "group_name" in group_df.columns:
-                            group_options = sorted(group_df["group_name"].unique())
+                            group_options = sorted(group_df[group_df["lab"] == selected_lab]["group_name"].unique())
                             selected_submission_group = st.selectbox("Select A Group to Grade", group_options, key="grade_admin_group")
                         else:
                             st.error("⚠️ 'group_name' column not found in the Submissions sheet.")
