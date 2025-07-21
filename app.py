@@ -830,16 +830,16 @@ elif st.session_state.user_role == "admin":
                                                         score
                                                     ])
                                                 
-                                            for _, student in group_students.iterrows():
-                                                grade_ws.append_row([
-                                                    datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                                                    selected_course,
-                                                    selected_lab,
-                                                    row['group_name'],
-                                                    student['member_names'],
-                                                    student['members'],
-                                                    score
-                                                ])
+                                            # for _, student in group_students.iterrows():
+                                            #     grade_ws.append_row([
+                                            #         datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                            #         selected_course,
+                                            #         selected_lab,
+                                            #         row['group_name'],
+                                            #         student['member_names'],
+                                            #         student['members'],
+                                            #         score
+                                            #     ])
         
                                             st.success(f"✅ Grade saved for {row['group_name']}")
                                             st.rerun()
