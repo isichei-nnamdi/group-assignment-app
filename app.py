@@ -711,8 +711,52 @@ elif st.session_state.user_role == "admin":
                                             if file_ext == "pdf":
                                                 st.components.v1.iframe(file_link.replace("/view?usp=sharing", "/preview"), height=600)
                                             elif file_ext in ["doc", "docx", "ppt", "pptx", "xls", "xlsx"]:
-                                                file_id = file_link.split("/d/")[1].split("/")[0]
-                                                st.components.v1.iframe(f"https://drive.google.com/file/d/{file_id}/preview", height=600)
+                                                try:
+                                                    # Extract the file ID from the Drive link
+                                                    file_id = file_link.split("/d/")[1].split("/")[0]
+                                                    preview_url = f"https://drive.google.com/file/d/{file_id}/preview"
+                                                    st.components.v1.iframe(preview_url, height=600)
+                                                except Exception as e:
+                                                    st.warning(f"⚠️ Unable to preview the document: {e}")
+                                            elif file_ext == "ipynb":
+                                                try:
+                                                    # Extract file ID from the drive link
+                                                    file_id = file_link.split("/d/")[1].split("/")[0]
+                                            
+                                                    # Use Drive API to fetch file content
+                                                    drive_service = build("drive", "v3", credentials=creds)
+                                                    request = drive_service.files().get_media(fileId=file_id, supportsAllDrives=True)
+                                                    file_buffer = BytesIO()
+                                                    downloader = MediaIoBaseDownload(file_buffer, request)
+                                            
+                                                    done = False
+                                                    while not done:
+                                                        _, done = downloader.next_chunk()
+                                            
+                                                    file_buffer.seek(0)
+                                                    notebook_json = json.load(file_buffer)
+                                            
+                                                    st.markdown("#### 📘 Notebook Preview")
+                                            
+                                                    for cell in notebook_json.get("cells", []):
+                                                        if cell["cell_type"] == "markdown":
+                                                            st.markdown("".join(cell["source"]), unsafe_allow_html=True)
+                                                        elif cell["cell_type"] == "code":
+                                                            st.code("".join(cell["source"]), language="python")
+                                                            if "outputs" in cell:
+                                                                for output in cell["outputs"]:
+                                                                    if output.get("output_type") == "stream":
+                                                                        st.text("".join(output.get("text", "")))
+                                                                    elif output.get("output_type") == "execute_result":
+                                                                        text = output.get("data", {}).get("text/plain", "")
+                                                                        if isinstance(text, list):
+                                                                            text = "".join(text)
+                                                                        st.text(text)
+                                                except Exception as e:
+                                                    st.error(f"⚠️ Notebook preview failed: {e}")
+                        
+                                                # file_id = file_link.split("/d/")[1].split("/")[0]
+                                                # st.components.v1.iframe(f"https://drive.google.com/file/d/{file_id}/preview", height=600)
                                             elif file_ext == "py":
                                                 file_id = file_link.split("/d/")[1].split("/")[0]
                                                 download_url = f"https://www.googleapis.com/drive/v3/files/{file_id}?alt=media"
@@ -723,7 +767,40 @@ elif st.session_state.user_role == "admin":
                                                 else:
                                                     st.warning("Could not preview Python file.")
                                             elif file_ext in ["png", "jpg", "jpeg", "gif"]:
-                                                st.image(file_link, use_column_width=True)
+                                                st.image(file_link, caption=file_name, use_column_width=True)
+                                            elif file_ent == "py":
+                                                import requests
+                                                from google.auth.transport.requests import Request
+                                            
+                                                try:
+                                                    # ➊ refresh token if needed
+                                                    if not creds.valid:
+                                                        creds.refresh(Request())
+                                            
+                                                    # ➋ extract file‑id
+                                                    file_id = file_link.split("/d/")[1].split("/")[0]
+                                            
+                                                    # ➌ build download URL – note supportsAllDrives
+                                                    download_url = (
+                                                        f"https://www.googleapis.com/drive/v3/files/{file_id}"
+                                                        "?alt=media&supportsAllDrives=true"
+                                                    )
+                                            
+                                                    # ➍ authenticated GET
+                                                    headers = {"Authorization": f"Bearer {creds.token}"}
+                                                    r = requests.get(download_url, headers=headers, timeout=20)
+                                            
+                                                    if r.ok:
+                                                        st.code(r.text, language="python")
+                                                    else:
+                                                        st.warning(
+                                                            f"⚠️ Drive returned {r.status_code}. "
+                                                            "Check that the file is shared with the service‑account "
+                                                            "and that the ID is correct."
+                                                        )
+                                            
+                                                except Exception as e:
+                                                    st.error(f"⚠️ Error displaying .py file: {e}")
                                             else:
                                                 st.info("⚠️ File preview not supported.")
                                         except Exception as e:
