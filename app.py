@@ -818,8 +818,8 @@ elif st.session_state.user_role == "admin":
                                                     selected_course,
                                                     selected_lab,
                                                     row['group_name'],
-                                                    student['name'],
-                                                    student['email'],
+                                                    student['member_names'],
+                                                    student['members'],
                                                     score
                                                 ])
         
