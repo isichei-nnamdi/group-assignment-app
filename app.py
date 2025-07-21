@@ -13,6 +13,7 @@ import json
 import time
 from googleapiclient.discovery import build
 import requests
+from io import BytesIO
 import logging
 from datetime import timedelta
 from google.auth.transport.requests import Request
