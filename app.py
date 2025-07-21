@@ -796,8 +796,21 @@ elif st.session_state.user_role == "admin":
                                                     st.error(f"⚠️ Error displaying .py file: {e}")
                                         except Exception as e:
                                             st.error(f"Error previewing file: {e}")
-        
-                                    score = st.text_input(f"Enter grade for {row['group_name']}", key=f"score_{idx}")
+
+                                    # --------------------------------------------------------------------------------------------------
+                                    # Determine if group is already graded
+                                    already_graded = row.get("graded", "").strip().lower() == "yes"
+                                    existing_score = row.get("grade", "").strip()
+                                
+                                    if already_graded and existing_score:
+                                        st.info(f"✅ This group has already been graded: **{existing_score}**. You may update the score below.")
+                                
+                                    score_input_key = f"score_{idx}"
+                                    submit_button_key = f"submit_{idx}"
+                                
+                                    score = st.text_input(f"Enter grade for {row['group_name']}", value=existing_score if existing_score else "", key=score_input_key)
+
+                                    # score = st.text_input(f"Enter grade for {row['group_name']}", key=f"score_{idx}")
                                     if st.button(f"✅ Submit Grade for {row['group_name']}", key=f"submit_{idx}"):
                                         try:
                                             row_idx = idx + 2  # Adjust for header + 0-based index
@@ -828,19 +841,7 @@ elif st.session_state.user_role == "admin":
                                                         name,
                                                         email,
                                                         score
-                                                    ])
-                                                
-                                            # for _, student in group_students.iterrows():
-                                            #     grade_ws.append_row([
-                                            #         datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                                            #         selected_course,
-                                            #         selected_lab,
-                                            #         row['group_name'],
-                                            #         student['member_names'],
-                                            #         student['members'],
-                                            #         score
-                                            #     ])
-        
+                                                    ])     
                                             st.success(f"✅ Grade saved for {row['group_name']}")
                                             st.rerun()
                                         except Exception as e:
