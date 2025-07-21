@@ -673,7 +673,7 @@ elif st.session_state.user_role == "admin":
                         submissions_data = submissions_ws.get_all_values()
 
                         group_df = pd.DataFrame(submissions_data[1:], columns=[col.strip() for col in submissions_data[0]])
-                        group_options = sorted(group_df[group_df["group_name"])
+                        group_options = sorted(group_df[group_df["group_name"]])
                         selected_submission_group = st.selectbox("Select A Group to Grade", group_options, key="grade_admin_group")
         
                         if len(submissions_data) <= 1:
