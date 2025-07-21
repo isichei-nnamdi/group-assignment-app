@@ -11,6 +11,7 @@ from google.auth.exceptions import TransportError
 import socket
 import json
 import time
+import logging
 from datetime import timedelta
 from google.auth.transport.requests import Request
 
@@ -492,7 +493,12 @@ if st.session_state.user_role == "student":
                 st.stop()
 
             # Reload latest group data before final validation
-            latest_data = st.session_state.groups_ws.get_all_values()
+            try:
+                latest_data = st.session_state.groups_ws.get_all_values()
+            except Exception as e:
+                logging.exception("Error while fetching data from Google Sheets.")
+                st.error("We’re experiencing high activity right now. Please try again in a few minutes as multiple users are making requests at the same time.")
+                st.stop()
             st.session_state.groups_df = pd.DataFrame(latest_data[1:], columns=latest_data[0]) if len(latest_data) > 1 else pd.DataFrame(columns=latest_data[0])
             existing_group_names = st.session_state.groups_df["group_name"].str.lower().tolist()
 
