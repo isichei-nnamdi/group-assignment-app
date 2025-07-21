@@ -762,17 +762,6 @@ elif st.session_state.user_role == "admin":
                                                 # file_id = file_link.split("/d/")[1].split("/")[0]
                                                 # st.components.v1.iframe(f"https://drive.google.com/file/d/{file_id}/preview", height=600)
                                             elif file_ext == "py":
-                                                file_id = file_link.split("/d/")[1].split("/")[0]
-                                                download_url = f"https://www.googleapis.com/drive/v3/files/{file_id}?alt=media"
-                                                headers = {"Authorization": f"Bearer {creds.token}"}
-                                                response = requests.get(download_url, headers=headers)
-                                                if response.ok:
-                                                    st.code(response.text, language="python")
-                                                else:
-                                                    st.warning("Could not preview Python file.")
-                                            elif file_ext in ["png", "jpg", "jpeg", "gif"]:
-                                                st.image(file_link, caption=file_name, use_column_width=True)
-                                            elif file_ent == "py":
                                                 import requests
                                                 from google.auth.transport.requests import Request
                                             
@@ -805,8 +794,6 @@ elif st.session_state.user_role == "admin":
                                             
                                                 except Exception as e:
                                                     st.error(f"⚠️ Error displaying .py file: {e}")
-                                            else:
-                                                st.info("⚠️ File preview not supported.")
                                         except Exception as e:
                                             st.error(f"Error previewing file: {e}")
         
