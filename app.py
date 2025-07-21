@@ -668,13 +668,20 @@ elif st.session_state.user_role == "admin":
                     else:
                         selected_lab = st.selectbox("Select Lab", lab_options, key="grade_admin_lab")
         
-                        # Load Submissions sheet
+                       # Load Submissions sheet
                         submissions_ws = client.open_by_key(group_log_sheet_id).worksheet("Submissions")
                         submissions_data = submissions_ws.get_all_values()
-
+                        
+                        # Create DataFrame with header row
                         group_df = pd.DataFrame(submissions_data[1:], columns=[col.strip() for col in submissions_data[0]])
-                        group_options = sorted(group_df[group_df["group_name"]])
-                        selected_submission_group = st.selectbox("Select A Group to Grade", group_options, key="grade_admin_group")
+                        
+                        # Get list of unique group names from the 'group_name' column
+                        if "group_name" in group_df.columns:
+                            group_options = sorted(group_df["group_name"].unique())
+                            selected_submission_group = st.selectbox("Select A Group to Grade", group_options, key="grade_admin_group")
+                        else:
+                            st.error("⚠️ 'group_name' column not found in the Submissions sheet.")
+
         
                         if len(submissions_data) <= 1:
                             st.info("No submissions found.")
