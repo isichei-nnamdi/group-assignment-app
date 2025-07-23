@@ -328,8 +328,6 @@ if st.session_state.user_role == "student":
                 st.warning("Please provide a group name.")
                 st.stop()
 
-            import time
-
             def safe_get_all_values(ws, retries=3, delay=2):
                 for attempt in range(retries):
                     try:
