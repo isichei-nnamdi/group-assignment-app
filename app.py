@@ -328,6 +328,17 @@ if st.session_state.user_role == "student":
                 st.warning("Please provide a group name.")
                 st.stop()
 
+            import time
+
+            def safe_get_all_values(ws, retries=3, delay=2):
+                for attempt in range(retries):
+                    try:
+                        return ws.get_all_values()
+                    except Exception as e:
+                        if attempt < retries - 1:
+                            time.sleep(delay)
+                        else:
+                            raise e
             # Reload latest group data before final validation
             try:
                 latest_data = st.session_state.groups_ws.get_all_values()
