@@ -26,27 +26,32 @@ st.set_page_config(
 )
 
 # ---- 1. single helper that returns an *already‑authorised* client ---
-@st.cache_resource
-def get_gspread_client():
-    scopes = [
-        "https://www.googleapis.com/auth/spreadsheets",
-        "https://www.googleapis.com/auth/drive",
-    ]
-    return gspread.service_account_from_dict(
-        st.secrets["google_service_account"], scopes=scopes
-    )
+# @st.cache_resource
+# def get_gspread_client():
+#     scopes = [
+#         "https://www.googleapis.com/auth/spreadsheets",
+#         "https://www.googleapis.com/auth/drive",
+#     ]
+#     return gspread.service_account_from_dict(
+#         st.secrets["google_service_account"], scopes=scopes
+#     )
 
 try:
+    @st.cache_resource
+    def get_gspread_client():
+        return gspread.service_account_from_dict(st.secrets["google_service_account"])
+    
+    # Usage
     gc = get_gspread_client()
     client = gc
 
-    creds = Credentials.from_service_account_info(
-    st.secrets["google_service_account"],
-    scopes=[
-        "https://www.googleapis.com/auth/drive",
-        "https://www.googleapis.com/auth/spreadsheets",
-        ]
-    )
+    # creds = Credentials.from_service_account_info(
+    # st.secrets["google_service_account"],
+    # scopes=[
+    #     "https://www.googleapis.com/auth/drive",
+    #     "https://www.googleapis.com/auth/spreadsheets",
+    #     ]
+    # )
     
     # ---- 2. grab the sheet ids once, keep them in session_state -------
     if "student_sheet_id" not in st.session_state:
