@@ -332,13 +332,13 @@ if st.session_state.user_role == "student":
             try:
                 latest_data = st.session_state.groups_ws.get_all_values()
             except Exception as e:
-                st.error("An unexpected error occurred.")
-                st.text(str(e))  # Optional: debug output for dev
-                logging.exception("Error while fetching data from Google Sheets.")
-                st.stop()
+                # st.error("An unexpected error occurred.")
+                # st.text(str(e))  # Optional: debug output for dev
                 # logging.exception("Error while fetching data from Google Sheets.")
-                # st.error("We’re experiencing high activity right now. Please try again in a few minutes as multiple users are making requests at the same time.")
                 # st.stop()
+                logging.exception("Error while fetching data from Google Sheets.")
+                st.error("We’re experiencing high activity right now. Please try again in a few minutes as multiple users are making requests at the same time.")
+                st.stop()
             st.session_state.groups_df = pd.DataFrame(latest_data[1:], columns=latest_data[0]) if len(latest_data) > 1 else pd.DataFrame(columns=latest_data[0])
             existing_group_names = st.session_state.groups_df["group_name"].str.lower().tolist()
 
