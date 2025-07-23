@@ -26,6 +26,7 @@ st.set_page_config(
 )
 
 # ---- 1. single helper that returns an *already‑authorised* client ---
+@st.cache_resource
 def get_gspread_client():
     scopes = [
         "https://www.googleapis.com/auth/spreadsheets",
