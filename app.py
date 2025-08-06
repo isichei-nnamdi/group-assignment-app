@@ -434,440 +434,442 @@ if st.session_state.user_role == "student":
 
 # ========== Admin Panel ==========
 elif st.session_state.user_role == "admin":
-    col1, col2, col3 = st.columns([1, 5, 1])
+    st.write("Admin access has been disabled at the moment, please try again later")
+    st.rerun()
+    # col1, col2, col3 = st.columns([1, 5, 1])
 
-    with col2:
-        st.subheader("👩‍💼 Admin Panel")
-        admin_tabs = st.tabs(["📋 View Groups", "⬇️ Download", "❌ Delete Group", "📝 Grade Submissions"]) #"👥 View & Assign",
+    # with col2:
+    #     st.subheader("👩‍💼 Admin Panel")
+    #     admin_tabs = st.tabs(["📋 View Groups", "⬇️ Download", "❌ Delete Group", "📝 Grade Submissions"]) #"👥 View & Assign",
 
-        with admin_tabs[0]:
-            st.markdown("### 🔍 Filter and View Groups")
+    #     with admin_tabs[0]:
+    #         st.markdown("### 🔍 Filter and View Groups")
 
-            if st.session_state.groups_df.empty:
-                st.info("No groups created yet.")
-            else:
-                # Extract unique values for filters
-                faculty_options = st.session_state.groups_df["faculty"].dropna().unique().tolist()
-                selected_faculty = st.selectbox("Select Faculty", faculty_options)
+    #         if st.session_state.groups_df.empty:
+    #             st.info("No groups created yet.")
+    #         else:
+    #             # Extract unique values for filters
+    #             faculty_options = st.session_state.groups_df["faculty"].dropna().unique().tolist()
+    #             selected_faculty = st.selectbox("Select Faculty", faculty_options)
 
-                dept_options = st.session_state.groups_df[
-                    st.session_state.groups_df["faculty"] == selected_faculty
-                ]["department"].dropna().unique().tolist()
-                selected_department = st.selectbox("Select Department", dept_options)
+    #             dept_options = st.session_state.groups_df[
+    #                 st.session_state.groups_df["faculty"] == selected_faculty
+    #             ]["department"].dropna().unique().tolist()
+    #             selected_department = st.selectbox("Select Department", dept_options)
 
-                course_options = st.session_state.groups_df[
-                    (st.session_state.groups_df["faculty"] == selected_faculty) &
-                    (st.session_state.groups_df["department"] == selected_department)
-                ]["course"].dropna().unique().tolist()
-                selected_course = st.selectbox("Select Course", course_options)
+    #             course_options = st.session_state.groups_df[
+    #                 (st.session_state.groups_df["faculty"] == selected_faculty) &
+    #                 (st.session_state.groups_df["department"] == selected_department)
+    #             ]["course"].dropna().unique().tolist()
+    #             selected_course = st.selectbox("Select Course", course_options)
 
-                # Filter groups based on selections
-                filtered_groups = st.session_state.groups_df[
-                    (st.session_state.groups_df["faculty"] == selected_faculty) &
-                    (st.session_state.groups_df["department"] == selected_department) &
-                    (st.session_state.groups_df["course"] == selected_course)
-                ]
+    #             # Filter groups based on selections
+    #             filtered_groups = st.session_state.groups_df[
+    #                 (st.session_state.groups_df["faculty"] == selected_faculty) &
+    #                 (st.session_state.groups_df["department"] == selected_department) &
+    #                 (st.session_state.groups_df["course"] == selected_course)
+    #             ]
 
-                if filtered_groups.empty:
-                    st.warning("No groups found for this selection.")
-                else:
-                    st.success(f"Displaying groups for: {selected_faculty} > {selected_department} > {selected_course}")
-                    st.dataframe(filtered_groups)
+    #             if filtered_groups.empty:
+    #                 st.warning("No groups found for this selection.")
+    #             else:
+    #                 st.success(f"Displaying groups for: {selected_faculty} > {selected_department} > {selected_course}")
+    #                 st.dataframe(filtered_groups)
 
-        with admin_tabs[1]:
-            st.markdown("### ⬇️ Download Groups")
+    #     with admin_tabs[1]:
+    #         st.markdown("### ⬇️ Download Groups")
 
-            if st.session_state.groups_df.empty:
-                st.info("No groups created yet.")
-            else:
-                # Filter dropdowns
-                faculty_options = st.session_state.groups_df["faculty"].dropna().unique().tolist()
-                selected_faculty = st.selectbox("Select Faculty", faculty_options, key="dl_faculty")
+    #         if st.session_state.groups_df.empty:
+    #             st.info("No groups created yet.")
+    #         else:
+    #             # Filter dropdowns
+    #             faculty_options = st.session_state.groups_df["faculty"].dropna().unique().tolist()
+    #             selected_faculty = st.selectbox("Select Faculty", faculty_options, key="dl_faculty")
 
-                dept_options = st.session_state.groups_df[
-                    st.session_state.groups_df["faculty"] == selected_faculty
-                ]["department"].dropna().unique().tolist()
-                selected_department = st.selectbox("Select Department", dept_options, key="dl_department")
+    #             dept_options = st.session_state.groups_df[
+    #                 st.session_state.groups_df["faculty"] == selected_faculty
+    #             ]["department"].dropna().unique().tolist()
+    #             selected_department = st.selectbox("Select Department", dept_options, key="dl_department")
 
-                course_options = st.session_state.groups_df[
-                    (st.session_state.groups_df["faculty"] == selected_faculty) &
-                    (st.session_state.groups_df["department"] == selected_department)
-                ]["course"].dropna().unique().tolist()
-                selected_course = st.selectbox("Select Course", course_options, key="dl_course")
+    #             course_options = st.session_state.groups_df[
+    #                 (st.session_state.groups_df["faculty"] == selected_faculty) &
+    #                 (st.session_state.groups_df["department"] == selected_department)
+    #             ]["course"].dropna().unique().tolist()
+    #             selected_course = st.selectbox("Select Course", course_options, key="dl_course")
 
-                # Apply filtering
-                filtered_groups = st.session_state.groups_df[
-                    (st.session_state.groups_df["faculty"] == selected_faculty) &
-                    (st.session_state.groups_df["department"] == selected_department) &
-                    (st.session_state.groups_df["course"] == selected_course)
-                ]
+    #             # Apply filtering
+    #             filtered_groups = st.session_state.groups_df[
+    #                 (st.session_state.groups_df["faculty"] == selected_faculty) &
+    #                 (st.session_state.groups_df["department"] == selected_department) &
+    #                 (st.session_state.groups_df["course"] == selected_course)
+    #             ]
 
-                if filtered_groups.empty:
-                    st.warning("No data available for download.")
-                else:
-                    csv = filtered_groups.to_csv(index=False).encode('utf-8')
-                    st.success("Filtered group data ready for download.")
-                    st.download_button("Download Filtered CSV", data=csv, file_name="filtered_groups.csv", mime="text/csv")
+    #             if filtered_groups.empty:
+    #                 st.warning("No data available for download.")
+    #             else:
+    #                 csv = filtered_groups.to_csv(index=False).encode('utf-8')
+    #                 st.success("Filtered group data ready for download.")
+    #                 st.download_button("Download Filtered CSV", data=csv, file_name="filtered_groups.csv", mime="text/csv")
 
 
-        with admin_tabs[2]:
-            st.markdown("### ❌ Delete a Group")
+    #     with admin_tabs[2]:
+    #         st.markdown("### ❌ Delete a Group")
 
-            if st.session_state.groups_df.empty:
-                st.info("No groups created yet.")
-            else:
-                faculty_options = st.session_state.groups_df["faculty"].dropna().unique().tolist()
-                selected_faculty = st.selectbox("Select Faculty", faculty_options, key="del_faculty")
+    #         if st.session_state.groups_df.empty:
+    #             st.info("No groups created yet.")
+    #         else:
+    #             faculty_options = st.session_state.groups_df["faculty"].dropna().unique().tolist()
+    #             selected_faculty = st.selectbox("Select Faculty", faculty_options, key="del_faculty")
 
-                dept_options = st.session_state.groups_df[
-                    st.session_state.groups_df["faculty"] == selected_faculty
-                ]["department"].dropna().unique().tolist()
-                selected_department = st.selectbox("Select Department", dept_options, key="del_department")
+    #             dept_options = st.session_state.groups_df[
+    #                 st.session_state.groups_df["faculty"] == selected_faculty
+    #             ]["department"].dropna().unique().tolist()
+    #             selected_department = st.selectbox("Select Department", dept_options, key="del_department")
 
-                course_options = st.session_state.groups_df[
-                    (st.session_state.groups_df["faculty"] == selected_faculty) &
-                    (st.session_state.groups_df["department"] == selected_department)
-                ]["course"].dropna().unique().tolist()
-                selected_course = st.selectbox("Select Course", course_options, key="del_course")
+    #             course_options = st.session_state.groups_df[
+    #                 (st.session_state.groups_df["faculty"] == selected_faculty) &
+    #                 (st.session_state.groups_df["department"] == selected_department)
+    #             ]["course"].dropna().unique().tolist()
+    #             selected_course = st.selectbox("Select Course", course_options, key="del_course")
 
-                filtered_df = st.session_state.groups_df[
-                    (st.session_state.groups_df["faculty"] == selected_faculty) &
-                    (st.session_state.groups_df["department"] == selected_department) &
-                    (st.session_state.groups_df["course"] == selected_course)
-                ]
+    #             filtered_df = st.session_state.groups_df[
+    #                 (st.session_state.groups_df["faculty"] == selected_faculty) &
+    #                 (st.session_state.groups_df["department"] == selected_department) &
+    #                 (st.session_state.groups_df["course"] == selected_course)
+    #             ]
 
-                if filtered_df.empty:
-                    st.warning("No groups found for this selection.")
-                else:
-                    group_names = filtered_df["group_name"].unique().tolist()
-                    group_to_delete = st.selectbox("Select group to delete", group_names)
+    #             if filtered_df.empty:
+    #                 st.warning("No groups found for this selection.")
+    #             else:
+    #                 group_names = filtered_df["group_name"].unique().tolist()
+    #                 group_to_delete = st.selectbox("Select group to delete", group_names)
 
-                    if st.button("Confirm Delete"):
-                        # Clear and re-upload Google Sheet with group removed
-                        all_rows = st.session_state.groups_ws.get_all_values()
-                        headers = all_rows[0]
-                        updated_rows = [row for row in all_rows if row[1] != group_to_delete]
+    #                 if st.button("Confirm Delete"):
+    #                     # Clear and re-upload Google Sheet with group removed
+    #                     all_rows = st.session_state.groups_ws.get_all_values()
+    #                     headers = all_rows[0]
+    #                     updated_rows = [row for row in all_rows if row[1] != group_to_delete]
 
-                        st.session_state.groups_ws.clear()
-                        st.session_state.groups_ws.append_row(headers)
-                        for row in updated_rows[1:]:
-                            st.session_state.groups_ws.append_row(row)
+    #                     st.session_state.groups_ws.clear()
+    #                     st.session_state.groups_ws.append_row(headers)
+    #                     for row in updated_rows[1:]:
+    #                         st.session_state.groups_ws.append_row(row)
 
-                        # Update local dataframe
-                        st.session_state.groups_df = st.session_state.groups_df[
-                            st.session_state.groups_df["group_name"] != group_to_delete
-                        ]
+    #                     # Update local dataframe
+    #                     st.session_state.groups_df = st.session_state.groups_df[
+    #                         st.session_state.groups_df["group_name"] != group_to_delete
+    #                     ]
 
-                        st.success(f"✅ Group '{group_to_delete}' deleted successfully.")
-                        st.rerun()
+    #                     st.success(f"✅ Group '{group_to_delete}' deleted successfully.")
+    #                     st.rerun()
 
             
-        # with admin_tabs[3]:
-        #     st.markdown("### 👥 View Group Members & Assign Students")
+    #     # with admin_tabs[3]:
+    #     #     st.markdown("### 👥 View Group Members & Assign Students")
 
-        #     if st.session_state.groups_df.empty:
-        #         st.info("No groups created yet.")
-        #     else:
-        #         # Filters for Faculty, Department, Course
-        #         faculty_options = st.session_state.groups_df["faculty"].dropna().unique().tolist()
-        #         selected_faculty = st.selectbox("Select Faculty", faculty_options, key="assign_faculty")
+    #     #     if st.session_state.groups_df.empty:
+    #     #         st.info("No groups created yet.")
+    #     #     else:
+    #     #         # Filters for Faculty, Department, Course
+    #     #         faculty_options = st.session_state.groups_df["faculty"].dropna().unique().tolist()
+    #     #         selected_faculty = st.selectbox("Select Faculty", faculty_options, key="assign_faculty")
 
-        #         dept_options = st.session_state.groups_df[
-        #             st.session_state.groups_df["faculty"] == selected_faculty
-        #         ]["department"].dropna().unique().tolist()
-        #         selected_department = st.selectbox("Select Department", dept_options, key="assign_department")
+    #     #         dept_options = st.session_state.groups_df[
+    #     #             st.session_state.groups_df["faculty"] == selected_faculty
+    #     #         ]["department"].dropna().unique().tolist()
+    #     #         selected_department = st.selectbox("Select Department", dept_options, key="assign_department")
 
-        #         course_options = st.session_state.groups_df[
-        #             (st.session_state.groups_df["faculty"] == selected_faculty) &
-        #             (st.session_state.groups_df["department"] == selected_department)
-        #         ]["course"].dropna().unique().tolist()
-        #         selected_course = st.selectbox("Select Course", course_options, key="assign_course")
+    #     #         course_options = st.session_state.groups_df[
+    #     #             (st.session_state.groups_df["faculty"] == selected_faculty) &
+    #     #             (st.session_state.groups_df["department"] == selected_department)
+    #     #         ]["course"].dropna().unique().tolist()
+    #     #         selected_course = st.selectbox("Select Course", course_options, key="assign_course")
 
-        #         # Filtered groups
-        #         filtered_groups = st.session_state.groups_df[
-        #             (st.session_state.groups_df["faculty"] == selected_faculty) &
-        #             (st.session_state.groups_df["department"] == selected_department) &
-        #             (st.session_state.groups_df["course"] == selected_course)
-        #         ]
+    #     #         # Filtered groups
+    #     #         filtered_groups = st.session_state.groups_df[
+    #     #             (st.session_state.groups_df["faculty"] == selected_faculty) &
+    #     #             (st.session_state.groups_df["department"] == selected_department) &
+    #     #             (st.session_state.groups_df["course"] == selected_course)
+    #     #         ]
 
-        #         group_names = filtered_groups["group_name"].unique().tolist()
-        #         selected_group = st.selectbox("Select Group to View Members", group_names)
+    #     #         group_names = filtered_groups["group_name"].unique().tolist()
+    #     #         selected_group = st.selectbox("Select Group to View Members", group_names)
 
-        #         group_members = filtered_groups[filtered_groups["group_name"] == selected_group]
+    #     #         group_members = filtered_groups[filtered_groups["group_name"] == selected_group]
 
-        #         st.markdown(f"#### Members of **{selected_group}**")
-        #         st.write(group_members)  # or process as a list if needed
+    #     #         st.markdown(f"#### Members of **{selected_group}**")
+    #     #         st.write(group_members)  # or process as a list if needed
 
 
-                # # Load students_df to identify ungrouped students
-                # students_df = st.session_state.students_df.copy()
-                # grouped_matrics = st.session_state.groups_df["members"].unique().tolist()
-                # ungrouped_df = students_df[~students_df["members"].isin(grouped_matrics)]
+    #             # # Load students_df to identify ungrouped students
+    #             # students_df = st.session_state.students_df.copy()
+    #             # grouped_matrics = st.session_state.groups_df["members"].unique().tolist()
+    #             # ungrouped_df = students_df[~students_df["members"].isin(grouped_matrics)]
 
-                # ungrouped_filtered = ungrouped_df[
-                #     (ungrouped_df["faculty"] == selected_faculty) &
-                #     (ungrouped_df["department"] == selected_department) &
-                #     (ungrouped_df["course"] == selected_course)
-                # ]
+    #             # ungrouped_filtered = ungrouped_df[
+    #             #     (ungrouped_df["faculty"] == selected_faculty) &
+    #             #     (ungrouped_df["department"] == selected_department) &
+    #             #     (ungrouped_df["course"] == selected_course)
+    #             # ]
 
-                # st.markdown("#### ➕ Assign Ungrouped Student to Selected Group")
+    #             # st.markdown("#### ➕ Assign Ungrouped Student to Selected Group")
 
-                # # Always define selected_display first
-                # selected_display = []
+    #             # # Always define selected_display first
+    #             # selected_display = []
 
-                # if ungrouped_filtered.empty:
-                #     st.info("No ungrouped students available.")
-                # else:
-                #     # Mapping display name to matric number
-                #     display_to_matric = {
-                #         f"{row['First Name'].strip().title()} {row['Surname'].strip().title()} ({row['matric_no']})": row["matric_no"]
-                #         for _, row in ungrouped_filtered.iterrows()
-                #     }
+    #             # if ungrouped_filtered.empty:
+    #             #     st.info("No ungrouped students available.")
+    #             # else:
+    #             #     # Mapping display name to matric number
+    #             #     display_to_matric = {
+    #             #         f"{row['First Name'].strip().title()} {row['Surname'].strip().title()} ({row['matric_no']})": row["matric_no"]
+    #             #         for _, row in ungrouped_filtered.iterrows()
+    #             #     }
 
-                #     selected_display = st.multiselect("Select students to assign", list(display_to_matric.keys()))
+    #             #     selected_display = st.multiselect("Select students to assign", list(display_to_matric.keys()))
 
-                #     if selected_display:
-                #         selected_matrics = [display_to_matric[item] for item in selected_display if item in display_to_matric]
+    #             #     if selected_display:
+    #             #         selected_matrics = [display_to_matric[item] for item in selected_display if item in display_to_matric]
 
-                #         if st.button("Assign Selected Students to Group"):
-                #             assigned = False
-                #             for matric in selected_matrics:
-                #                 student_row = ungrouped_filtered[ungrouped_filtered["matric_no"] == matric].iloc[0]
+    #             #         if st.button("Assign Selected Students to Group"):
+    #             #             assigned = False
+    #             #             for matric in selected_matrics:
+    #             #                 student_row = ungrouped_filtered[ungrouped_filtered["matric_no"] == matric].iloc[0]
 
-                #                 new_row = [
-                #                     "",  # serial number
-                #                     selected_group,
-                #                     student_row["matric_no"],
-                #                     student_row["First Name"],
-                #                     student_row["Surname"],
-                #                     student_row["email"],
-                #                     student_row["faculty"],
-                #                     student_row["department"],
-                #                     student_row["course"]
-                #                 ]
+    #             #                 new_row = [
+    #             #                     "",  # serial number
+    #             #                     selected_group,
+    #             #                     student_row["matric_no"],
+    #             #                     student_row["First Name"],
+    #             #                     student_row["Surname"],
+    #             #                     student_row["email"],
+    #             #                     student_row["faculty"],
+    #             #                     student_row["department"],
+    #             #                     student_row["course"]
+    #             #                 ]
 
-                #                 # Append to Google Sheet
-                #                 st.session_state.groups_ws.append_row(new_row)
+    #             #                 # Append to Google Sheet
+    #             #                 st.session_state.groups_ws.append_row(new_row)
 
-                #                 # Update local DataFrame
-                #                 st.session_state.groups_df = pd.concat([st.session_state.groups_df, pd.DataFrame([{
-                #                     "group_name": selected_group,
-                #                     "matric_no": student_row["matric_no"],
-                #                     "First Name": student_row["First Name"],
-                #                     "Surname": student_row["Surname"],
-                #                     "email": student_row["email"],
-                #                     "faculty": student_row["faculty"],
-                #                     "department": student_row["department"],
-                #                     "course": student_row["course"]
-                #                 }])], ignore_index=True)
+    #             #                 # Update local DataFrame
+    #             #                 st.session_state.groups_df = pd.concat([st.session_state.groups_df, pd.DataFrame([{
+    #             #                     "group_name": selected_group,
+    #             #                     "matric_no": student_row["matric_no"],
+    #             #                     "First Name": student_row["First Name"],
+    #             #                     "Surname": student_row["Surname"],
+    #             #                     "email": student_row["email"],
+    #             #                     "faculty": student_row["faculty"],
+    #             #                     "department": student_row["department"],
+    #             #                     "course": student_row["course"]
+    #             #                 }])], ignore_index=True)
 
-                #                 assigned = True
+    #             #                 assigned = True
 
-                #             if assigned:
-                #                 st.success("✅ Selected students have been added to the group.")
-                #                 st.rerun()
-        with admin_tabs[3]:
-            st.markdown("### 📝 Grade Lab Submissions")
+    #             #             if assigned:
+    #             #                 st.success("✅ Selected students have been added to the group.")
+    #             #                 st.rerun()
+    #     with admin_tabs[3]:
+    #         st.markdown("### 📝 Grade Lab Submissions")
 
-            try:
-                # Load Labs sheet
-                labs_ws = client.open_by_key(group_log_sheet_id).worksheet("Labs")
-                labs_data = labs_ws.get_all_values()
+    #         try:
+    #             # Load Labs sheet
+    #             labs_ws = client.open_by_key(group_log_sheet_id).worksheet("Labs")
+    #             labs_data = labs_ws.get_all_values()
         
-                if len(labs_data) <= 1:
-                    st.warning("⚠️ No labs found.")
-                else:
-                    labs_df = pd.DataFrame(labs_data[1:], columns=[col.strip() for col in labs_data[0]])
-                    labs_df.columns = [
-                        "Lab Name" if "lab" in c.lower() else "Course" if "course" in c.lower() else c
-                        for c in labs_df.columns
-                    ]
-                    course_options = sorted(labs_df["Course"].dropna().unique())
-                    selected_course = st.selectbox("Select Course", course_options, key="grade_admin_course")
+    #             if len(labs_data) <= 1:
+    #                 st.warning("⚠️ No labs found.")
+    #             else:
+    #                 labs_df = pd.DataFrame(labs_data[1:], columns=[col.strip() for col in labs_data[0]])
+    #                 labs_df.columns = [
+    #                     "Lab Name" if "lab" in c.lower() else "Course" if "course" in c.lower() else c
+    #                     for c in labs_df.columns
+    #                 ]
+    #                 course_options = sorted(labs_df["Course"].dropna().unique())
+    #                 selected_course = st.selectbox("Select Course", course_options, key="grade_admin_course")
         
-                    lab_options = sorted(labs_df[labs_df["Course"].str.lower() == selected_course.lower()]["Lab Name"].dropna().unique())
-                    if not lab_options:
-                        st.warning("No labs available for this course.")
-                    else:
-                        selected_lab = st.selectbox("Select Lab", lab_options, key="grade_admin_lab")
+    #                 lab_options = sorted(labs_df[labs_df["Course"].str.lower() == selected_course.lower()]["Lab Name"].dropna().unique())
+    #                 if not lab_options:
+    #                     st.warning("No labs available for this course.")
+    #                 else:
+    #                     selected_lab = st.selectbox("Select Lab", lab_options, key="grade_admin_lab")
         
-                       # Load Submissions sheet
-                        submissions_ws = client.open_by_key(group_log_sheet_id).worksheet("Submissions")
-                        submissions_data = submissions_ws.get_all_values()
+    #                    # Load Submissions sheet
+    #                     submissions_ws = client.open_by_key(group_log_sheet_id).worksheet("Submissions")
+    #                     submissions_data = submissions_ws.get_all_values()
                         
-                        # Create DataFrame with header row
-                        group_df = pd.DataFrame(submissions_data[1:], columns=[col.strip() for col in submissions_data[0]])
+    #                     # Create DataFrame with header row
+    #                     group_df = pd.DataFrame(submissions_data[1:], columns=[col.strip() for col in submissions_data[0]])
                         
-                        # Get list of unique group names from the 'group_name' column
-                        if "group_name" in group_df.columns:
-                            group_options = sorted(group_df[group_df["lab"] == selected_lab]["group_name"].unique())
-                            selected_submission_group = st.selectbox("Select A Group to Grade", group_options, key="grade_admin_group")
-                        else:
-                            st.error("⚠️ 'group_name' column not found in the Submissions sheet.")
+    #                     # Get list of unique group names from the 'group_name' column
+    #                     if "group_name" in group_df.columns:
+    #                         group_options = sorted(group_df[group_df["lab"] == selected_lab]["group_name"].unique())
+    #                         selected_submission_group = st.selectbox("Select A Group to Grade", group_options, key="grade_admin_group")
+    #                     else:
+    #                         st.error("⚠️ 'group_name' column not found in the Submissions sheet.")
 
         
-                        if len(submissions_data) <= 1:
-                            st.info("No submissions found.")
-                        else:
-                            submissions_df = pd.DataFrame(submissions_data[1:], columns=submissions_data[0])
+    #                     if len(submissions_data) <= 1:
+    #                         st.info("No submissions found.")
+    #                     else:
+    #                         submissions_df = pd.DataFrame(submissions_data[1:], columns=submissions_data[0])
                             
-                            filtered = submissions_df[
-                                (submissions_df["course"].str.lower() == selected_course.lower()) &
-                                (submissions_df["lab"].str.lower() == selected_lab.lower()) &
-                                (submissions_df["group_name"].str.lower() == selected_submission_group.lower())
-                            ]
+    #                         filtered = submissions_df[
+    #                             (submissions_df["course"].str.lower() == selected_course.lower()) &
+    #                             (submissions_df["lab"].str.lower() == selected_lab.lower()) &
+    #                             (submissions_df["group_name"].str.lower() == selected_submission_group.lower())
+    #                         ]
         
-                            if filtered.empty:
-                                st.info("No submissions found for this lab.")
-                            else:
-                                for idx, row in filtered.iterrows():
-                                    st.markdown("---")
-                                    st.markdown(f"### 👥 Group: **{row['group_name']}**")
-                                    st.markdown(f"👤 Submitted by: {row['submitted_by']}")
-                                    st.markdown(f"📎 File: [{row['file_name']}]({row['file_link']})")
+    #                         if filtered.empty:
+    #                             st.info("No submissions found for this lab.")
+    #                         else:
+    #                             for idx, row in filtered.iterrows():
+    #                                 st.markdown("---")
+    #                                 st.markdown(f"### 👥 Group: **{row['group_name']}**")
+    #                                 st.markdown(f"👤 Submitted by: {row['submitted_by']}")
+    #                                 st.markdown(f"📎 File: [{row['file_name']}]({row['file_link']})")
         
-                                    file_ext = row['file_name'].split('.')[-1].lower()
-                                    file_link = row['file_link']
+    #                                 file_ext = row['file_name'].split('.')[-1].lower()
+    #                                 file_link = row['file_link']
         
-                                    with st.expander("🔍 Preview File"):
-                                        try:
-                                            if file_ext == "pdf":
-                                                st.components.v1.iframe(file_link.replace("/view?usp=sharing", "/preview"), height=600)
-                                            elif file_ext in ["doc", "docx", "ppt", "pptx", "xls", "xlsx"]:
-                                                try:
-                                                    # Extract the file ID from the Drive link
-                                                    file_id = file_link.split("/d/")[1].split("/")[0]
-                                                    preview_url = f"https://drive.google.com/file/d/{file_id}/preview"
-                                                    st.components.v1.iframe(preview_url, height=600)
-                                                except Exception as e:
-                                                    st.warning(f"⚠️ Unable to preview the document: {e}")
-                                            elif file_ext == "ipynb":
-                                                try:
-                                                    # Extract file ID from the drive link
-                                                    file_id = file_link.split("/d/")[1].split("/")[0]
+    #                                 with st.expander("🔍 Preview File"):
+    #                                     try:
+    #                                         if file_ext == "pdf":
+    #                                             st.components.v1.iframe(file_link.replace("/view?usp=sharing", "/preview"), height=600)
+    #                                         elif file_ext in ["doc", "docx", "ppt", "pptx", "xls", "xlsx"]:
+    #                                             try:
+    #                                                 # Extract the file ID from the Drive link
+    #                                                 file_id = file_link.split("/d/")[1].split("/")[0]
+    #                                                 preview_url = f"https://drive.google.com/file/d/{file_id}/preview"
+    #                                                 st.components.v1.iframe(preview_url, height=600)
+    #                                             except Exception as e:
+    #                                                 st.warning(f"⚠️ Unable to preview the document: {e}")
+    #                                         elif file_ext == "ipynb":
+    #                                             try:
+    #                                                 # Extract file ID from the drive link
+    #                                                 file_id = file_link.split("/d/")[1].split("/")[0]
                                             
-                                                    # Use Drive API to fetch file content
-                                                    drive_service = build("drive", "v3", credentials=creds)
-                                                    request = drive_service.files().get_media(fileId=file_id, supportsAllDrives=True)
-                                                    file_buffer = BytesIO()
-                                                    downloader = MediaIoBaseDownload(file_buffer, request)
+    #                                                 # Use Drive API to fetch file content
+    #                                                 drive_service = build("drive", "v3", credentials=creds)
+    #                                                 request = drive_service.files().get_media(fileId=file_id, supportsAllDrives=True)
+    #                                                 file_buffer = BytesIO()
+    #                                                 downloader = MediaIoBaseDownload(file_buffer, request)
                                             
-                                                    done = False
-                                                    while not done:
-                                                        _, done = downloader.next_chunk()
+    #                                                 done = False
+    #                                                 while not done:
+    #                                                     _, done = downloader.next_chunk()
                                             
-                                                    file_buffer.seek(0)
-                                                    notebook_json = json.load(file_buffer)
+    #                                                 file_buffer.seek(0)
+    #                                                 notebook_json = json.load(file_buffer)
                                             
-                                                    st.markdown("#### 📘 Notebook Preview")
+    #                                                 st.markdown("#### 📘 Notebook Preview")
                                             
-                                                    for cell in notebook_json.get("cells", []):
-                                                        if cell["cell_type"] == "markdown":
-                                                            st.markdown("".join(cell["source"]), unsafe_allow_html=True)
-                                                        elif cell["cell_type"] == "code":
-                                                            st.code("".join(cell["source"]), language="python")
-                                                            if "outputs" in cell:
-                                                                for output in cell["outputs"]:
-                                                                    if output.get("output_type") == "stream":
-                                                                        st.text("".join(output.get("text", "")))
-                                                                    elif output.get("output_type") == "execute_result":
-                                                                        text = output.get("data", {}).get("text/plain", "")
-                                                                        if isinstance(text, list):
-                                                                            text = "".join(text)
-                                                                        st.text(text)
-                                                except Exception as e:
-                                                    st.error(f"⚠️ Notebook preview failed: {e}")
+    #                                                 for cell in notebook_json.get("cells", []):
+    #                                                     if cell["cell_type"] == "markdown":
+    #                                                         st.markdown("".join(cell["source"]), unsafe_allow_html=True)
+    #                                                     elif cell["cell_type"] == "code":
+    #                                                         st.code("".join(cell["source"]), language="python")
+    #                                                         if "outputs" in cell:
+    #                                                             for output in cell["outputs"]:
+    #                                                                 if output.get("output_type") == "stream":
+    #                                                                     st.text("".join(output.get("text", "")))
+    #                                                                 elif output.get("output_type") == "execute_result":
+    #                                                                     text = output.get("data", {}).get("text/plain", "")
+    #                                                                     if isinstance(text, list):
+    #                                                                         text = "".join(text)
+    #                                                                     st.text(text)
+    #                                             except Exception as e:
+    #                                                 st.error(f"⚠️ Notebook preview failed: {e}")
                         
-                                                # file_id = file_link.split("/d/")[1].split("/")[0]
-                                                # st.components.v1.iframe(f"https://drive.google.com/file/d/{file_id}/preview", height=600)
-                                            elif file_ext == "py":
-                                                import requests
-                                                from google.auth.transport.requests import Request
+    #                                             # file_id = file_link.split("/d/")[1].split("/")[0]
+    #                                             # st.components.v1.iframe(f"https://drive.google.com/file/d/{file_id}/preview", height=600)
+    #                                         elif file_ext == "py":
+    #                                             import requests
+    #                                             from google.auth.transport.requests import Request
                                             
-                                                try:
-                                                    # ➊ refresh token if needed
-                                                    if not creds.valid:
-                                                        creds.refresh(Request())
+    #                                             try:
+    #                                                 # ➊ refresh token if needed
+    #                                                 if not creds.valid:
+    #                                                     creds.refresh(Request())
                                             
-                                                    # ➋ extract file‑id
-                                                    file_id = file_link.split("/d/")[1].split("/")[0]
+    #                                                 # ➋ extract file‑id
+    #                                                 file_id = file_link.split("/d/")[1].split("/")[0]
                                             
-                                                    # ➌ build download URL – note supportsAllDrives
-                                                    download_url = (
-                                                        f"https://www.googleapis.com/drive/v3/files/{file_id}"
-                                                        "?alt=media&supportsAllDrives=true"
-                                                    )
+    #                                                 # ➌ build download URL – note supportsAllDrives
+    #                                                 download_url = (
+    #                                                     f"https://www.googleapis.com/drive/v3/files/{file_id}"
+    #                                                     "?alt=media&supportsAllDrives=true"
+    #                                                 )
                                             
-                                                    # ➍ authenticated GET
-                                                    headers = {"Authorization": f"Bearer {creds.token}"}
-                                                    r = requests.get(download_url, headers=headers, timeout=20)
+    #                                                 # ➍ authenticated GET
+    #                                                 headers = {"Authorization": f"Bearer {creds.token}"}
+    #                                                 r = requests.get(download_url, headers=headers, timeout=20)
                                             
-                                                    if r.ok:
-                                                        st.code(r.text, language="python")
-                                                    else:
-                                                        st.warning(
-                                                            f"⚠️ Drive returned {r.status_code}. "
-                                                            "Check that the file is shared with the service‑account "
-                                                            "and that the ID is correct."
-                                                        )
+    #                                                 if r.ok:
+    #                                                     st.code(r.text, language="python")
+    #                                                 else:
+    #                                                     st.warning(
+    #                                                         f"⚠️ Drive returned {r.status_code}. "
+    #                                                         "Check that the file is shared with the service‑account "
+    #                                                         "and that the ID is correct."
+    #                                                     )
                                             
-                                                except Exception as e:
-                                                    st.error(f"⚠️ Error displaying .py file: {e}")
-                                        except Exception as e:
-                                            st.error(f"Error previewing file: {e}")
+    #                                             except Exception as e:
+    #                                                 st.error(f"⚠️ Error displaying .py file: {e}")
+    #                                     except Exception as e:
+    #                                         st.error(f"Error previewing file: {e}")
 
-                                    # --------------------------------------------------------------------------------------------------
-                                    # Determine if group is already graded
-                                    already_graded = row.get("graded", "").strip().lower() == "yes"
-                                    existing_score = row.get("grade", "").strip()
+    #                                 # --------------------------------------------------------------------------------------------------
+    #                                 # Determine if group is already graded
+    #                                 already_graded = row.get("graded", "").strip().lower() == "yes"
+    #                                 existing_score = row.get("grade", "").strip()
                                 
-                                    if already_graded and existing_score:
-                                        st.info(f"✅ This group has already been graded: **{existing_score}**. You may update the score below.")
+    #                                 if already_graded and existing_score:
+    #                                     st.info(f"✅ This group has already been graded: **{existing_score}**. You may update the score below.")
                                 
-                                    score_input_key = f"score_{idx}"
-                                    submit_button_key = f"submit_{idx}"
+    #                                 score_input_key = f"score_{idx}"
+    #                                 submit_button_key = f"submit_{idx}"
                                 
-                                    score = st.text_input(f"Enter grade for {row['group_name']}", value=existing_score if existing_score else "", key=score_input_key)
+    #                                 score = st.text_input(f"Enter grade for {row['group_name']}", value=existing_score if existing_score else "", key=score_input_key)
 
-                                    # score = st.text_input(f"Enter grade for {row['group_name']}", key=f"score_{idx}")
-                                    if st.button(f"✅ Submit Grade for {row['group_name']}", key=f"submit_{idx}"):
-                                        try:
-                                            row_idx = idx + 2  # Adjust for header + 0-based index
-                                            submissions_ws.update_cell(row_idx, submissions_df.columns.get_loc("graded") + 1, "Yes")
-                                            submissions_ws.update_cell(row_idx, submissions_df.columns.get_loc("grade") + 1, score)
+    #                                 # score = st.text_input(f"Enter grade for {row['group_name']}", key=f"score_{idx}")
+    #                                 if st.button(f"✅ Submit Grade for {row['group_name']}", key=f"submit_{idx}"):
+    #                                     try:
+    #                                         row_idx = idx + 2  # Adjust for header + 0-based index
+    #                                         submissions_ws.update_cell(row_idx, submissions_df.columns.get_loc("graded") + 1, "Yes")
+    #                                         submissions_ws.update_cell(row_idx, submissions_df.columns.get_loc("grade") + 1, score)
         
-                                            grade_sheet_name = f"{selected_course}_{selected_lab}".replace(" ", "_")
-                                            try:
-                                                grade_ws = client.open_by_key(group_log_sheet_id).worksheet(grade_sheet_name)
-                                            except:
-                                                grade_ws = client.open_by_key(group_log_sheet_id).add_worksheet(grade_sheet_name, rows="1000", cols="10")
-                                                grade_ws.append_row(["timestamp", "course", "lab", "group_name", "name", "email", "score"])
+    #                                         grade_sheet_name = f"{selected_course}_{selected_lab}".replace(" ", "_")
+    #                                         try:
+    #                                             grade_ws = client.open_by_key(group_log_sheet_id).worksheet(grade_sheet_name)
+    #                                         except:
+    #                                             grade_ws = client.open_by_key(group_log_sheet_id).add_worksheet(grade_sheet_name, rows="1000", cols="10")
+    #                                             grade_ws.append_row(["timestamp", "course", "lab", "group_name", "name", "email", "score"])
         
-                                            group_students = st.session_state.groups_df[st.session_state.groups_df["group_name"] == row["group_name"]]
+    #                                         group_students = st.session_state.groups_df[st.session_state.groups_df["group_name"] == row["group_name"]]
 
-                                            # Check if group_students has multiple rows or just one with comma-separated names
-                                            if group_students.shape[0] == 1 and "member_names" in group_students.columns and "," in group_students.iloc[0]["member_names"]:
-                                                # Split comma-separated names and emails into lists
-                                                names = [n.strip() for n in group_students.iloc[0]["member_names"].split(",")]
-                                                emails = [e.strip() for e in group_students.iloc[0]["members"].split(",")]
+    #                                         # Check if group_students has multiple rows or just one with comma-separated names
+    #                                         if group_students.shape[0] == 1 and "member_names" in group_students.columns and "," in group_students.iloc[0]["member_names"]:
+    #                                             # Split comma-separated names and emails into lists
+    #                                             names = [n.strip() for n in group_students.iloc[0]["member_names"].split(",")]
+    #                                             emails = [e.strip() for e in group_students.iloc[0]["members"].split(",")]
 
-                                                for name, email in zip(names, emails):
-                                                    grade_ws.append_row([
-                                                        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                                                        selected_course,
-                                                        selected_lab,
-                                                        row['group_name'],
-                                                        name,
-                                                        email,
-                                                        score
-                                                    ])     
-                                            st.success(f"✅ Grade saved for {row['group_name']}")
-                                            st.rerun()
-                                        except Exception as e:
-                                            st.error(f"❌ Failed to grade: {e}")
+    #                                             for name, email in zip(names, emails):
+    #                                                 grade_ws.append_row([
+    #                                                     datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    #                                                     selected_course,
+    #                                                     selected_lab,
+    #                                                     row['group_name'],
+    #                                                     name,
+    #                                                     email,
+    #                                                     score
+    #                                                 ])     
+    #                                         st.success(f"✅ Grade saved for {row['group_name']}")
+    #                                         st.rerun()
+    #                                     except Exception as e:
+    #                                         st.error(f"❌ Failed to grade: {e}")
         
-            except Exception as e:
-                st.error(f"🚫 Failed to load Labs or Submissions: {e}")
+    #         except Exception as e:
+    #             st.error(f"🚫 Failed to load Labs or Submissions: {e}")
 
 else:
     st.error("Unknown user role. Please contact administrator.")
