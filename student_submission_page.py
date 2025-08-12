@@ -35,19 +35,41 @@ def student_submission_page(group_info, selected_course, student_email, client, 
 
     selected_lab = st.selectbox("Select Lab to Submit", lab_list)
 
+    # # ========== Load Submissions ==========
+    # def load_submissions_df(_client, _sheet_id):
+    #     try:
+    #         ws = _client.open_by_key(_sheet_id).worksheet("Submissions")
+    #     except:
+    #         ws = _client.open_by_key(_sheet_id).add_worksheet(title="Submissions", rows="1000", cols="10")
+    #         ws.append_row(["timestamp", "group_name", "course", "lab", "submitted_by", "file_name", "file_link", "graded", "grade"])
+
+    #     records = ws.get_all_values()
+    #     df = pd.DataFrame(records[1:], columns=records[0]) if len(records) > 1 else pd.DataFrame(columns=[
+    #         "timestamp", "group_name", "course", "lab", "submitted_by",
+    #         "file_name", "file_link", "graded", "grade"
+    #     ])
+    #     return ws, df
+
     # ========== Load Submissions ==========
     def load_submissions_df(_client, _sheet_id):
         try:
             ws = _client.open_by_key(_sheet_id).worksheet("Submissions")
-        except:
+        except WorksheetNotFound:
+            # Only create if it truly does not exist
             ws = _client.open_by_key(_sheet_id).add_worksheet(title="Submissions", rows="1000", cols="10")
             ws.append_row(["timestamp", "group_name", "course", "lab", "submitted_by", "file_name", "file_link", "graded", "grade"])
-
+        except Exception as e:
+            # Any other error: surface it rather than silently wiping data
+            raise RuntimeError(f"Failed to load Submissions sheet: {e}")
+    
         records = ws.get_all_values()
-        df = pd.DataFrame(records[1:], columns=records[0]) if len(records) > 1 else pd.DataFrame(columns=[
-            "timestamp", "group_name", "course", "lab", "submitted_by",
-            "file_name", "file_link", "graded", "grade"
-        ])
+        if len(records) > 1:
+            df = pd.DataFrame(records[1:], columns=records[0])
+        else:
+            df = pd.DataFrame(columns=[
+                "timestamp", "group_name", "course", "lab", "submitted_by",
+                "file_name", "file_link", "graded", "grade"
+            ])
         return ws, df
 
     # ========== Upload to Google Drive ==========
@@ -227,14 +249,49 @@ def student_submission_page(group_info, selected_course, student_email, client, 
         if graded_status == "yes":
             st.success(f"📝 This submission has been graded: **{grade}**")
         else:
+            # if st.button("🗑️ Delete Submission and Re-upload"):
+            #     submissions_df = submissions_df.drop(existing.index)
+            #     submissions_ws.clear()
+            #     submissions_ws.append_row(submissions_df.columns.tolist())
+            #     for _, row in submissions_df.iterrows():
+            #         submissions_ws.append_row(list(row))
+            #     st.success("Deleted. You can now re-upload.")
+            #     st.rerun()
+            # ========== Delete Specific Submission ==========
+            def delete_submission(ws, group_name, course, lab):
+                """
+                Deletes only the row for the given group/course/lab combination.
+                Does NOT clear the whole sheet.
+                """
+                rows = ws.get_all_values()
+                if not rows:
+                    return False
+            
+                headers = rows[0]
+                target_idx = None
+            
+                for idx, row in enumerate(rows[1:], start=2):  # Start=2 because Sheets are 1-indexed and row 1 is headers
+                    if (
+                        row[headers.index("group_name")].strip().lower() == group_name.strip().lower()
+                        and row[headers.index("course")].strip().lower() == course.strip().lower()
+                        and row[headers.index("lab")].strip().lower() == lab.strip().lower()
+                    ):
+                        target_idx = idx
+                        break
+            
+                if target_idx:
+                    ws.delete_rows(target_idx)
+                    return True
+                return False
+            
+            # Usage inside your delete button logic:
             if st.button("🗑️ Delete Submission and Re-upload"):
-                submissions_df = submissions_df.drop(existing.index)
-                submissions_ws.clear()
-                submissions_ws.append_row(submissions_df.columns.tolist())
-                for _, row in submissions_df.iterrows():
-                    submissions_ws.append_row(list(row))
-                st.success("Deleted. You can now re-upload.")
-                st.rerun()
+                deleted = delete_submission(submissions_ws, group_name, selected_course, selected_lab)
+                if deleted:
+                    st.success("Submission deleted. You can now re-upload.")
+                    st.rerun()
+                else:
+                    st.warning("No matching submission found to delete.")
 
 
     # If not submitted yet
