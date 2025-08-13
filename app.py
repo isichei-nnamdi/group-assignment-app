@@ -332,7 +332,21 @@ if st.session_state.user_role == "student":
                     st.error("The 'groups' sheet is missing in the spreadsheet.")
                     st.stop()
             
-                # Only fetch if not already in session or if you explicitly need a refresh
+                # # Only fetch if not already in session or if you explicitly need a refresh
+                # if "groups_df" not in st.session_state or st.session_state.get("force_group_refresh", False):
+                #     ws = client.open_by_key(group_log_sheet_id).worksheet("groups")
+                #     latest_data = ws.get_all_values()
+                #     st.session_state.groups_ws = ws
+                #     st.session_state.groups_df = (
+                #         pd.DataFrame(latest_data[1:], columns=latest_data[0])
+                #         if len(latest_data) > 1
+                #         else pd.DataFrame(columns=latest_data[0])
+                #     )
+                #     st.session_state.force_group_refresh = False  # reset flag
+
+                # Before your if/else
+                latest_data = []
+                
                 if "groups_df" not in st.session_state or st.session_state.get("force_group_refresh", False):
                     ws = client.open_by_key(group_log_sheet_id).worksheet("groups")
                     latest_data = ws.get_all_values()
@@ -342,7 +356,10 @@ if st.session_state.user_role == "student":
                         if len(latest_data) > 1
                         else pd.DataFrame(columns=latest_data[0])
                     )
-                    st.session_state.force_group_refresh = False  # reset flag
+                    st.session_state.force_group_refresh = False
+                else:
+                    # Use cached version
+                    latest_data = [st.session_state.groups_df.columns.tolist()] + st.session_state.groups_df.values.tolist()
             
             except Exception as e:
                 logging.exception("Error while fetching data from Google Sheets.")
