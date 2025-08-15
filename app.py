@@ -397,100 +397,53 @@ if st.session_state.user_role == "student":
 
 # ========== Admin Panel ==========
 elif st.session_state.user_role == "admin":
-    st.subheader("🛠 Admin Group Creation")
+    st.subheader("🛠 Admin Group Creation (Fast Mode)")
+
+    if "groups_data_cache" not in st.session_state:
+        # Load groups only once
+        latest_data = st.session_state.groups_ws.get_all_values()
+        st.session_state.groups_data_cache = pd.DataFrame(latest_data[1:], columns=latest_data[0]) if len(latest_data) > 1 else pd.DataFrame(columns=latest_data[0])
 
     df = st.session_state.students_df.copy()
-    df['faculty'] = df['faculty'].str.strip().str.title()
-    df['program'] = df['program'].str.strip().str.title()
     df["email"] = df["email"].astype(str).str.strip().str.lower()
     df["fullname"] = df["first_name"].str.strip().str.title() + " " + df["last_name"].str.strip().str.title()
+    email_to_label = {row.email: f"{row.fullname} ({row.email})" for row in df.itertuples()}
 
     faculty = st.selectbox("Select Faculty", sorted(df['faculty'].dropna().unique()))
     department = st.selectbox("Select Department", sorted(df[df['faculty'] == faculty]['program'].dropna().unique()))
     selected_course = st.selectbox("Select Course", st.session_state.course_list)
 
-    # Already grouped students for this course
-    already_grouped = []
-    for _, row in st.session_state.groups_df.iterrows():
-        if row["course"].strip().lower() == selected_course.strip().lower():
-            already_grouped.extend([e.strip().lower() for e in row["members"].split(",")])
-
-    eligible_df = df.copy()  # Admin can pick anyone, but still highlight already grouped
-    st.info(f"⚠ Students already grouped for this course will be flagged in red below.")
-
     email_input = st.multiselect(
         "Select students to add to the group",
-        options=eligible_df["email"].tolist(),
-        format_func=lambda x: f"{eligible_df.loc[eligible_df['email'] == x, 'fullname'].values[0]} ({x})"
-                              + (" ❌" if x in already_grouped else "")
+        options=df["email"].tolist(),
+        format_func=lambda x: email_to_label.get(x, x)
     )
 
-    selected_names = [eligible_df.loc[eligible_df["email"] == email, "fullname"].values[0] for email in email_input]
     group_name = st.text_input("Enter Group Name")
 
     if st.button("✅ Create Group as Admin"):
-        if len(email_input) < 3:
-            st.warning("You must select at least 3 students.")
-            st.stop()
-        elif len(email_input) > 15:
-            st.warning("You can't select more than 15 students.")
-            st.stop()
-        elif not group_name.strip():
-            st.warning("Please provide a group name.")
+        if len(email_input) < 3 or len(email_input) > 15:
+            st.error("Group must have between 3 and 15 members.")
             st.stop()
 
-        # Reload sheet to prevent name conflicts
-        latest_data = st.session_state.groups_ws.get_all_values()
-        st.session_state.groups_df = pd.DataFrame(latest_data[1:], columns=latest_data[0]) if len(latest_data) > 1 else pd.DataFrame(columns=latest_data[0])
-        existing_group_names = st.session_state.groups_df["group_name"].str.lower().tolist()
-
-        if group_name.strip().lower() in existing_group_names:
+        existing_names = st.session_state.groups_data_cache["group_name"].str.lower().tolist()
+        if group_name.strip().lower() in existing_names:
             st.error("Group name already exists.")
             st.stop()
 
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        member_names = [email_to_label[e].split(" (")[0] for e in email_input]
         new_row = [
             timestamp, group_name, faculty, department, selected_course,
-            ", ".join(email_input), ", ".join(selected_names), st.session_state.user_email
+            ", ".join(email_input), ", ".join(member_names), st.session_state.user_email
         ]
 
-        # Write to sheet
-        if not latest_data:
-            st.session_state.groups_ws.append_row(["timestamp", "group_name", "faculty", "department", "course", "members", "member_names", "created_by"])
-        st.session_state.groups_ws.append_row(new_row)
-
-        # Email notifications
-        for email, name in zip(email_input, selected_names):
-            subject = f"[{selected_course}] You've been added to '{group_name}'"
-            body = f"""
-        Dear {name},
-
-        You have been added to the group '{group_name}' for the course {selected_course}, created by the Admin.
-
-        Group Members:
-        {chr(10).join(f"- {n} ({e})" for n, e in zip(selected_names, email_input))}
-
-        Please collaborate with your teammates.
-
-        Best regards,  
-        Group Formation Support,
-        School of Computing,
-        Miva Open University
-        """
-            msg = MIMEMultipart()
-            msg['From'] = "Group Formation Support"
-            msg['To'] = email
-            msg['Subject'] = subject
-            msg.attach(MIMEText(body, 'plain'))
-
-            try:
-                server = smtplib.SMTP('smtp.gmail.com', 587)
-                server.starttls()
-                server.login(st.session_state.dev_email, st.session_state.dev_password)
-                server.send_message(msg)
-                server.quit()
-            except Exception as e:
-                st.warning(f"Failed to send email to {email}. Reason: {e}")
+        try:
+            st.session_state.groups_ws.append_row(new_row)
+            st.success(f"✅ Group '{group_name}' created successfully by Admin!")
+            st.session_state.groups_data_cache.loc[len(st.session_state.groups_data_cache)] = new_row
+        except Exception as e:
+            st.error(f"❌ Failed to create group: {e}")
 
         st.success(f"✅ Group '{group_name}' created successfully by Admin!")
 else:
