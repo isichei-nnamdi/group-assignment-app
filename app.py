@@ -399,53 +399,53 @@ if st.session_state.user_role == "student":
 elif st.session_state.user_role == "admin":
     st.subheader("🛠 Admin Group Creation (Fast Mode)")
 
-    if "groups_data_cache" not in st.session_state:
-        # Load groups only once
-        latest_data = st.session_state.groups_ws.get_all_values()
-        st.session_state.groups_data_cache = pd.DataFrame(latest_data[1:], columns=latest_data[0]) if len(latest_data) > 1 else pd.DataFrame(columns=latest_data[0])
+    # if "groups_data_cache" not in st.session_state:
+    #     # Load groups only once
+    #     latest_data = st.session_state.groups_ws.get_all_values()
+    #     st.session_state.groups_data_cache = pd.DataFrame(latest_data[1:], columns=latest_data[0]) if len(latest_data) > 1 else pd.DataFrame(columns=latest_data[0])
 
-    df = st.session_state.students_df.copy()
-    df["email"] = df["email"].astype(str).str.strip().str.lower()
-    df["fullname"] = df["first_name"].str.strip().str.title() + " " + df["last_name"].str.strip().str.title()
-    email_to_label = {row.email: f"{row.fullname} ({row.email})" for row in df.itertuples()}
+    # df = st.session_state.students_df.copy()
+    # df["email"] = df["email"].astype(str).str.strip().str.lower()
+    # df["fullname"] = df["first_name"].str.strip().str.title() + " " + df["last_name"].str.strip().str.title()
+    # email_to_label = {row.email: f"{row.fullname} ({row.email})" for row in df.itertuples()}
 
-    faculty = st.selectbox("Select Faculty", sorted(df['faculty'].dropna().unique()))
-    department = st.selectbox("Select Department", sorted(df[df['faculty'] == faculty]['program'].dropna().unique()))
-    selected_course = st.selectbox("Select Course", st.session_state.course_list)
+    # faculty = st.selectbox("Select Faculty", sorted(df['faculty'].dropna().unique()))
+    # department = st.selectbox("Select Department", sorted(df[df['faculty'] == faculty]['program'].dropna().unique()))
+    # selected_course = st.selectbox("Select Course", st.session_state.course_list)
 
-    email_input = st.multiselect(
-        "Select students to add to the group",
-        options=df["email"].tolist(),
-        format_func=lambda x: email_to_label.get(x, x)
-    )
+    # email_input = st.multiselect(
+    #     "Select students to add to the group",
+    #     options=df["email"].tolist(),
+    #     format_func=lambda x: email_to_label.get(x, x)
+    # )
 
-    group_name = st.text_input("Enter Group Name")
+    # group_name = st.text_input("Enter Group Name")
 
-    if st.button("✅ Create Group as Admin"):
-        if len(email_input) < 3 or len(email_input) > 15:
-            st.error("Group must have between 3 and 15 members.")
-            st.stop()
+    # if st.button("✅ Create Group as Admin"):
+    #     if len(email_input) < 3 or len(email_input) > 15:
+    #         st.error("Group must have between 3 and 15 members.")
+    #         st.stop()
 
-        existing_names = st.session_state.groups_data_cache["group_name"].str.lower().tolist()
-        if group_name.strip().lower() in existing_names:
-            st.error("Group name already exists.")
-            st.stop()
+    #     existing_names = st.session_state.groups_data_cache["group_name"].str.lower().tolist()
+    #     if group_name.strip().lower() in existing_names:
+    #         st.error("Group name already exists.")
+    #         st.stop()
 
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        member_names = [email_to_label[e].split(" (")[0] for e in email_input]
-        new_row = [
-            timestamp, group_name, faculty, department, selected_course,
-            ", ".join(email_input), ", ".join(member_names), st.session_state.user_email
-        ]
+    #     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    #     member_names = [email_to_label[e].split(" (")[0] for e in email_input]
+    #     new_row = [
+    #         timestamp, group_name, faculty, department, selected_course,
+    #         ", ".join(email_input), ", ".join(member_names), st.session_state.user_email
+    #     ]
 
-        try:
-            st.session_state.groups_ws.append_row(new_row)
-            st.success(f"✅ Group '{group_name}' created successfully by Admin!")
-            st.session_state.groups_data_cache.loc[len(st.session_state.groups_data_cache)] = new_row
-        except Exception as e:
-            st.error(f"❌ Failed to create group: {e}")
+    #     try:
+    #         st.session_state.groups_ws.append_row(new_row)
+    #         st.success(f"✅ Group '{group_name}' created successfully by Admin!")
+    #         st.session_state.groups_data_cache.loc[len(st.session_state.groups_data_cache)] = new_row
+    #     except Exception as e:
+    #         st.error(f"❌ Failed to create group: {e}")
 
-        st.success(f"✅ Group '{group_name}' created successfully by Admin!")
+    #     st.success(f"✅ Group '{group_name}' created successfully by Admin!")
 else:
     st.error("Unknown user role. Please contact administrator.")
     st.stop()
