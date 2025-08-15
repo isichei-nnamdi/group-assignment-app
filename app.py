@@ -397,7 +397,6 @@ if st.session_state.user_role == "student":
 
 # ========== Admin Panel ==========
 elif st.session_state.user_role == "admin":
-    elif st.session_state.user_role == "admin":
     st.subheader("🛠 Admin Group Creation")
 
     df = st.session_state.students_df.copy()
