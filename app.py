@@ -269,7 +269,7 @@ if st.session_state.user_role == "student":
         # Inform user about invalid emails
         if invalid_emails:
             st.warning(f"The following emails are invalid or are members of another group in the selected course: {', '.join(invalid_emails)}")
-            st.info(f"Valid emails so far: {', '.join(valid_emails)}")
+            # st.info(f"Valid emails so far: {', '.join(valid_emails)}")
 
         # Filter eligible_df to only those in valid_emails
         valid_df = eligible_df[eligible_df["email"].isin(valid_emails)].copy()
