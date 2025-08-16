@@ -278,6 +278,9 @@ if st.session_state.user_role == "student":
         selected_names = valid_df["fullname"].tolist()
         selected_emails = valid_df["email"].tolist()
 
+        st.info("Kindly confirm the valid emails below:", selected_emails)
+        st.info("Kindly confirm the full names of all the valid emails below:", selected_names)
+
         group_name = st.text_input("Enter Group Name")
 
         if st.button("Create Group"):
